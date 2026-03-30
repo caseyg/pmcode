@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>03-approaches.html</title>
+  <style>
+/*
+ * BRAINSTORM COMPANION FRAME TEMPLATE CSS
+ *
+ * Include this CSS to render the brainstorm mockup HTML files standalone.
+ * Originally from the Superpowers Brainstorming plugin.
+ *
+ * Usage: Link this CSS in an HTML wrapper, or paste into <style> tags.
+ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ===== THEME VARIABLES ===== */
+:root {
+  --bg-primary: #f5f5f7;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e5e5e7;
+  --border: #d1d1d6;
+  --text-primary: #1d1d1f;
+  --text-secondary: #86868b;
+  --text-tertiary: #aeaeb2;
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --success: #34c759;
+  --warning: #ff9f0a;
+  --error: #ff3b30;
+  --selected-bg: #e8f4fd;
+  --selected-border: #0071e3;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #1d1d1f;
+    --bg-secondary: #2d2d2f;
+    --bg-tertiary: #3d3d3f;
+    --border: #424245;
+    --text-primary: #f5f5f7;
+    --text-secondary: #86868b;
+    --text-tertiary: #636366;
+    --accent: #0a84ff;
+    --accent-hover: #409cff;
+    --selected-bg: rgba(10, 132, 255, 0.15);
+    --selected-border: #0a84ff;
+  }
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  padding: 2rem;
+}
+
+/* ===== TYPOGRAPHY ===== */
+h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
+h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
+.subtitle { color: var(--text-secondary); margin-bottom: 1.5rem; }
+.section { margin-bottom: 2rem; }
+.label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+
+/* ===== OPTIONS (for A/B/C choices) ===== */
+.options { display: flex; flex-direction: column; gap: 0.75rem; }
+.option {
+  background: var(--bg-secondary);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.option:hover { border-color: var(--accent); }
+.option.selected { background: var(--selected-bg); border-color: var(--selected-border); }
+.option .letter {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  width: 1.75rem; height: 1.75rem;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 0.85rem; flex-shrink: 0;
+}
+.option.selected .letter { background: var(--accent); color: white; }
+.option .content { flex: 1; }
+.option .content h3 { font-size: 0.95rem; margin-bottom: 0.15rem; }
+.option .content p { color: var(--text-secondary); font-size: 0.85rem; margin: 0; }
+
+/* ===== CARDS ===== */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.card.selected { border-color: var(--selected-border); border-width: 2px; }
+.card-image { background: var(--bg-tertiary); aspect-ratio: 16/10; display: flex; align-items: center; justify-content: center; }
+.card-body { padding: 1rem; }
+.card-body h3 { margin-bottom: 0.25rem; }
+.card-body p { color: var(--text-secondary); font-size: 0.85rem; }
+
+/* ===== MOCKUP CONTAINER ===== */
+.mockup {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.mockup-header {
+  background: var(--bg-tertiary);
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+.mockup-body { padding: 1.5rem; }
+
+/* ===== SPLIT VIEW ===== */
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+@media (max-width: 700px) { .split { grid-template-columns: 1fr; } }
+
+/* ===== PROS/CONS ===== */
+.pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+.pros, .cons { background: var(--bg-secondary); border-radius: 8px; padding: 1rem; }
+.pros h4 { color: var(--success); font-size: 0.85rem; margin-bottom: 0.5rem; }
+.cons h4 { color: var(--error); font-size: 0.85rem; margin-bottom: 0.5rem; }
+.pros ul, .cons ul { margin-left: 1.25rem; font-size: 0.85rem; color: var(--text-secondary); }
+.pros li, .cons li { margin-bottom: 0.25rem; }
+
+/* ===== PLACEHOLDER ===== */
+.placeholder {
+  background: var(--bg-tertiary);
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-tertiary);
+}
+
+/* ===== INLINE MOCKUP ELEMENTS ===== */
+.mock-nav { background: var(--accent); color: white; padding: 0.75rem 1rem; display: flex; gap: 1.5rem; font-size: 0.9rem; }
+.mock-sidebar { background: var(--bg-tertiary); padding: 1rem; min-width: 180px; }
+.mock-content { padding: 1.5rem; flex: 1; }
+.mock-button { background: var(--accent); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; }
+.mock-input { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem; width: 100%; }
+
+  </style>
+</head>
+<body>
+<h2>PM Code — Design Approaches</h2>
+<p class="subtitle">Three approaches to the C→B→A progression model. Roo Code first, zero VS Code familiarity assumed.</p>
+
+<div class="section">
+  <p>Each approach addresses: How does a PM who has never used VS Code go from install → productive AI agent use?</p>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>The Guided Shell</h3>
+      <p><strong>PM Code owns the entire first-run experience.</strong> On first launch, it takes over the editor area with a full-screen welcome panel that hides the file tree, terminal, and other VS Code chrome. A step-by-step wizard handles Roo Code setup, first connector, and first guided interaction. The sidebar is a "learning track" with progressive chapters. As users gain confidence, PM Code gradually reveals VS Code features (file explorer, terminal) with contextual explanations. Think: a "training wheels" layer over VS Code.</p>
+      <div class="pros-cons" style="margin-top: 0.75rem;">
+        <div class="pros"><h4>Pros</h4><ul><li>Lowest barrier to entry — shields users from ALL VS Code complexity</li><li>Strong C→B→A progression — literally reveals features over time</li><li>Cohesive, branded experience</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Highest engineering effort — fighting VS Code's UX paradigm</li><li>Risk of "VS Code within VS Code" — users learn PM Code, not VS Code</li><li>Fragile — VS Code updates could break the shell</li><li>Users may feel patronized as they level up</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>The Companion Panel</h3>
+      <p><strong>PM Code is an always-present guide in the editor area.</strong> On first launch, it opens as a pinned editor panel (like a persistent README) with a welcome flow. It coexists with VS Code's native UI rather than hiding it. The sidebar handles navigation (skills, connectors, guides), while the main panel is a contextual companion — showing the right guide for what you're doing, surfacing connector status, and providing "what's this?" explanations for VS Code concepts as you encounter them. Roo Code chat lives in its own sidebar; PM Code's panel provides the scaffolding around it.</p>
+      <div class="pros-cons" style="margin-top: 0.75rem;">
+        <div class="pros"><h4>Pros</h4><ul><li>Works WITH VS Code, not against it — users learn real VS Code as they go</li><li>Lower engineering risk — uses standard webview panels + tree views</li><li>Natural C→B→A: panel shrinks from guide → dashboard → hidden as users grow</li><li>Doesn't fight Roo Code for sidebar space</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>More overwhelming on first launch — VS Code UI is still visible</li><li>Panel competes for editor real estate with actual files</li><li>Less "magical" first impression than the Guided Shell</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>The Smart Sidebar</h3>
+      <p><strong>Everything lives in the sidebar — no editor panels needed for the core flow.</strong> PM Code claims a sidebar position (like Roo Code does) with a rich webview sidebar. The FTUE is an inline walkthrough within the sidebar itself. Skills, connectors, guides, and status are all in a scrollable, search-filtered sidebar view. Clicking items opens lightweight editor panels only when needed (e.g., for multi-step guides with visuals). The sidebar is context-aware: it shows relevant guides based on what file or project you're in.</p>
+      <div class="pros-cons" style="margin-top: 0.75rem;">
+        <div class="pros"><h4>Pros</h4><ul><li>Smallest footprint — doesn't take over editor area</li><li>Familiar pattern — Roo Code already taught users that sidebars are where AI tools live</li><li>Context-aware sidebar can proactively surface help</li><li>Easiest to ignore for power users (A mode = just collapse the sidebar)</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Sidebar space is narrow (300-400px) — hard to show rich guides, visuals, forms</li><li>FTUE in a narrow sidebar may feel cramped for users who need hand-holding</li><li>Two sidebars (PM Code + Roo Code) competing for attention</li><li>Complex forms (connector config) are painful in sidebar width</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 1.5rem; padding: 1rem; border: 1px solid #0891b2; border-radius: 8px; background: rgba(8, 145, 178, 0.05);">
+  <h3 style="margin-top:0;">My Recommendation: B (The Companion Panel)</h3>
+  <p>It strikes the best balance: <strong>enough presence to guide a total beginner</strong> without fighting VS Code or creating a parallel universe. The panel can be as prominent or subtle as the user needs — full welcome wizard on day 1, contextual dashboard by week 2, closed entirely by month 2. And it works with Roo Code's sidebar rather than competing with it.</p>
+  <p>Click the approach you'd like to explore further, or let me know in the terminal.</p>
+</div>
+
+</body>
+</html>
