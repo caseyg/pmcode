@@ -631,3 +631,240 @@ Ready for the implementation plan whenever you are.
 ## User
 
 I wanted the literal conversation transcript. fine to keep the summary as well but add that.
+
+
+## Assistant
+
+Good — 30K chars of literal transcript. Now let me handle both requests: merge `/specs` into `/docs/superpowers/brainstorm` and fix the CSS on the mockup files.
+
+
+## Assistant
+
+Now let me wrap each HTML mockup with the CSS so they render standalone in a browser.
+
+
+## Assistant
+
+Now let me commit and push.
+
+
+## Assistant
+
+Done. Everything is now at:
+
+```
+docs/superpowers/brainstorm/
+├── 2026-03-30-pmcode-extension-design.md          # Full design spec
+├── 2026-03-30-design-session-transcript.md         # Summarized session
+├── 2026-03-30-design-session-literal-transcript.md # Literal conversation
+└── designs/
+    ├── frame-template.css                           # Standalone CSS
+    ├── 01-welcome.html → 08-updated-design-v2.html # All mockups (self-contained with CSS)
+```
+
+The HTML mockups now render standalone in any browser with dark mode CSS included. Try opening `file:///Users/cag/GitHub/pmcode/docs/superpowers/brainstorm/designs/08-updated-design-v2.html` — it should look correct now.
+
+
+## User
+
+and then put the transcript and summary in /docs/transcripts and rename -transcript to -summary and -literal-transcript to -transcript
+
+
+## Assistant
+
+Done.
+
+```
+docs/
+├── transcripts/
+│   ├── 2026-03-30-design-session-summary.md      # Summarized session notes
+│   └── 2026-03-30-design-session-transcript.md   # Full conversation
+└── superpowers/brainstorm/
+    ├── 2026-03-30-pmcode-extension-design.md      # Design spec
+    └── designs/                                    # Visual mockups
+```
+
+
+## User
+
+it should be superpowers/brainstorm/ for the design and superpowers/specs/ for the spec. no designs folder
+
+
+## Assistant
+
+Done.
+
+```
+docs/
+├── transcripts/
+│   ├── 2026-03-30-design-session-summary.md
+│   └── 2026-03-30-design-session-transcript.md
+└── superpowers/
+    ├── brainstorm/          # Visual mockups (HTML + CSS)
+    │   ├── 01-welcome.html → 08-updated-design-v2.html
+    │   └── frame-template.css
+    └── specs/               # Design spec
+        └── 2026-03-30-pmcode-extension-design.md
+```
+
+
+## User
+
+great commit
+
+
+## Assistant
+
+Thanks! Glad the file organization landed well.
+
+
+## User
+
+is there any PII in the transcript?
+
+
+## Assistant
+
+Two things:
+
+1. **`caseyg/pmcode`** — your GitHub username (line 22)
+2. **`/Users/cag/...`** — your local filesystem path (line 64)
+
+Want me to scrub those? I can replace the username with a placeholder and remove local paths.
+
+
+## User
+
+no thats fine.
+
+
+## Assistant
+
+Good — nothing sensitive then. The GitHub username and local paths are both visible in the public repo anyway.
+
+
+## User
+
+continue with the plan viewer/editor in the brainstorm plugin/web ui
+
+
+## Assistant
+
+Good, server's still running. Per the brainstorming skill, the next step is: spec is written, user needs to review it, then we transition to the implementation plan. Let me put the spec up for review in the browser.
+
+
+## Assistant
+
+Spec review is up at **http://localhost:60398**. It shows a compact overview of the full spec — architecture, MVP scope, key features, and tech stack.
+
+Click to approve and move to the implementation plan, or let me know what you'd like to change.
+
+
+## User
+
+I'm not sure about using a treeview for the sidebar. I think it should be all webview to allow for a richer display of the content and more layout flexibility, even if there is a kind of treeview in there. But I'd prefer to keep it simple just with buttons to open Skills, Connectors, and Guides. And then when search is active switch to a results view that filters as you type.
+
+
+## Assistant
+
+That's a cleaner approach — a webview sidebar with big clear buttons instead of tree sections, and search takes over the view when active. Let me mock it up.
+
+
+## Assistant
+
+Updated sidebar design is at **http://localhost:60398** showing three states:
+
+1. **Home** — search bar, Quick Start progress (during FTUE), three big nav buttons (Skills, Connectors, Guides) with counts and status badges, Roo Code connection status at bottom
+2. **Search active** — typing replaces everything with grouped, filtered results (Skills, Connectors, Guides, Commands) with match highlighting and filter chips
+3. **List view** (e.g. Skills) — back button + scrollable list of items, clicking opens center panel
+
+The key change: **single WebviewViewProvider** manages all states instead of TreeViews. Full layout control, custom styling, simpler architecture.
+
+Take a look and let me know if this is the direction, or if you want tweaks.
+
+
+## User
+
+also for secret storage I think it's OK to edit Roo's MCP JSON config files directly and store tokens there. and for skills they can keep credentials in ~/.pmcode/.env
+
+also skills and other config including features like user memory should be loaded from ~/.pmcode directory
+
+which clicking skills, it should open a skills list in a center pane not in the sidebar. and each skill page should open its own webview.
+
+also make sure the application is architected with VSCode commands available to open any screen or complete any action, which will help the agent work with it.
+
+
+## Assistant
+
+Those are significant architecture changes — all good ones. Let me update the design.
+
+
+## Assistant
+
+Updated architecture is at **http://localhost:60398** with four major changes:
+
+**1. Sidebar simplifies drastically** — only search + 3 nav buttons + status. Clicking "Skills" opens a Skills list as a center pane. Each skill opens its own webview tab.
+
+**2. ~/.pmcode is the config home** — credentials in `.env`, skills as JSON files, connector configs, user memory as markdown, guide progress, config history for rollback. All plain files, portable and inspectable.
+
+**3. Secrets go to Roo's MCP config directly** — no SecretStorage indirection. PM Code writes MCP server definitions where Roo reads them. Tokens stored in `~/.pmcode/.env` and referenced as needed.
+
+**4. Full VS Code command registry** — every screen and action has a command (`pmcode.openSkill {id}`, `pmcode.connector.test {id}`, `pmcode.skill.run {id}`, etc.). Enables Roo to drive PM Code programmatically, plus command palette access for power users.
+
+Take a look and let me know if it's ready to finalize.
+
+
+## User
+
+skills should not be json they should use the agentskills.io spec and the configuration should be compatible with anthropic's plugin marketplace manifest. the extension should also read from skills installed at ~/.agents for cross-compatibility with skills.sh
+
+this shouldn't be under skills since its a generic command:
+pmcode.skill.sendPrompt {text}
+Send arbitrary prompt to Roo
+
+search web for actual location of roo's mcp config to be explicit
+
+
+## Assistant
+
+Good research. Now let me update the design with all of this.
+
+
+## Assistant
+
+Updated at **http://localhost:60398** with all changes:
+
+**1. Skills use agentskills.io SKILL.md format** — directory with `SKILL.md` (YAML frontmatter + markdown), not JSON. Compatible with `npx skills add`.
+
+**2. Skill loading from 5 locations** (priority order): project `.pmcode/skills/` → project `.agents/skills/` → global `~/.pmcode/skills/` → global `~/.agents/skills/` → bundled defaults.
+
+**3. Roo MCP config — actual paths:**
+- Global: `~/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings/cline_mcp_settings.json`
+- Project: `<root>/.roo/mcp.json`
+- PM Code reads existing config, merges its servers, never overwrites user-added servers.
+
+**4. `pmcode.sendPrompt {text}` moved to top-level Core** commands, not under skills.
+
+**5. `plugin.json`** in `~/.pmcode/` aligns with Anthropic's plugin marketplace manifest format.
+
+Take a look — ready to finalize?
+
+
+## User
+
+looks good
+
+
+## Assistant
+
+Let me update the spec with all the changes from the last three rounds, then commit.
+
+
+## Assistant
+
+Let me copy the new mockups, update the transcript, commit, and make the repo public.
+
+
+## Assistant
+
+Now regenerate the literal transcript with the latest conversation state.

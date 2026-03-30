@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>10-architecture-update-v1.html</title>
+  <style>
+/*
+ * BRAINSTORM COMPANION FRAME TEMPLATE CSS
+ *
+ * Include this CSS to render the brainstorm mockup HTML files standalone.
+ * Originally from the Superpowers Brainstorming plugin.
+ *
+ * Usage: Link this CSS in an HTML wrapper, or paste into <style> tags.
+ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ===== THEME VARIABLES ===== */
+:root {
+  --bg-primary: #f5f5f7;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e5e5e7;
+  --border: #d1d1d6;
+  --text-primary: #1d1d1f;
+  --text-secondary: #86868b;
+  --text-tertiary: #aeaeb2;
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --success: #34c759;
+  --warning: #ff9f0a;
+  --error: #ff3b30;
+  --selected-bg: #e8f4fd;
+  --selected-border: #0071e3;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #1d1d1f;
+    --bg-secondary: #2d2d2f;
+    --bg-tertiary: #3d3d3f;
+    --border: #424245;
+    --text-primary: #f5f5f7;
+    --text-secondary: #86868b;
+    --text-tertiary: #636366;
+    --accent: #0a84ff;
+    --accent-hover: #409cff;
+    --selected-bg: rgba(10, 132, 255, 0.15);
+    --selected-border: #0a84ff;
+  }
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+  padding: 2rem;
+}
+
+/* ===== TYPOGRAPHY ===== */
+h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
+h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
+.subtitle { color: var(--text-secondary); margin-bottom: 1.5rem; }
+.section { margin-bottom: 2rem; }
+.label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+
+/* ===== OPTIONS (for A/B/C choices) ===== */
+.options { display: flex; flex-direction: column; gap: 0.75rem; }
+.option {
+  background: var(--bg-secondary);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.option:hover { border-color: var(--accent); }
+.option.selected { background: var(--selected-bg); border-color: var(--selected-border); }
+.option .letter {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  width: 1.75rem; height: 1.75rem;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 0.85rem; flex-shrink: 0;
+}
+.option.selected .letter { background: var(--accent); color: white; }
+.option .content { flex: 1; }
+.option .content h3 { font-size: 0.95rem; margin-bottom: 0.15rem; }
+.option .content p { color: var(--text-secondary); font-size: 0.85rem; margin: 0; }
+
+/* ===== CARDS ===== */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.card.selected { border-color: var(--selected-border); border-width: 2px; }
+.card-image { background: var(--bg-tertiary); aspect-ratio: 16/10; display: flex; align-items: center; justify-content: center; }
+.card-body { padding: 1rem; }
+.card-body h3 { margin-bottom: 0.25rem; }
+.card-body p { color: var(--text-secondary); font-size: 0.85rem; }
+
+/* ===== MOCKUP CONTAINER ===== */
+.mockup {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.mockup-header {
+  background: var(--bg-tertiary);
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+.mockup-body { padding: 1.5rem; }
+
+/* ===== SPLIT VIEW ===== */
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+@media (max-width: 700px) { .split { grid-template-columns: 1fr; } }
+
+/* ===== PROS/CONS ===== */
+.pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+.pros, .cons { background: var(--bg-secondary); border-radius: 8px; padding: 1rem; }
+.pros h4 { color: var(--success); font-size: 0.85rem; margin-bottom: 0.5rem; }
+.cons h4 { color: var(--error); font-size: 0.85rem; margin-bottom: 0.5rem; }
+.pros ul, .cons ul { margin-left: 1.25rem; font-size: 0.85rem; color: var(--text-secondary); }
+.pros li, .cons li { margin-bottom: 0.25rem; }
+
+/* ===== PLACEHOLDER ===== */
+.placeholder {
+  background: var(--bg-tertiary);
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-tertiary);
+}
+
+/* ===== INLINE MOCKUP ELEMENTS ===== */
+.mock-nav { background: var(--accent); color: white; padding: 0.75rem 1rem; display: flex; gap: 1.5rem; font-size: 0.9rem; }
+.mock-sidebar { background: var(--bg-tertiary); padding: 1rem; min-width: 180px; }
+.mock-content { padding: 1.5rem; flex: 1; }
+.mock-button { background: var(--accent); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; }
+.mock-input { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem; width: 100%; }
+
+  </style>
+</head>
+<body>
+<h2>Architecture Update — Revised</h2>
+<p class="subtitle">Config in ~/.pmcode, center panes for lists, VS Code commands for everything</p>
+
+<!-- SECTION 1: SIDEBAR SIMPLIFICATION -->
+<div class="section">
+  <h3>1. Sidebar Simplifies</h3>
+  <p style="font-size:0.9em; color:#aaa;">Sidebar is ONLY search + nav buttons + status. All lists and details open as center panes.</p>
+</div>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">Sidebar: The Only State</div>
+    <div class="mockup-body" style="padding:0; width:280px; min-height:420px; background:#1e1e1e; margin:0 auto;">
+      <div style="padding:10px 12px 6px;">
+        <div style="background:#3c3c3c; border:1px solid #555; border-radius:6px; padding:7px 10px; font-size:12px; color:#888; display:flex; align-items:center; gap:6px;">
+          <span style="opacity:0.5;">🔍</span> Search skills, connectors, guides...
+        </div>
+      </div>
+
+      <div style="padding:8px 12px;">
+        <div style="background:#7c3aed15; border:1px solid #7c3aed33; border-radius:8px; padding:10px 12px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+            <div style="font-size:11px; font-weight:600; color:#7c3aed;">Quick Start</div>
+            <div style="font-size:10px; color:#888;">2 of 4</div>
+          </div>
+          <div style="background:#333; border-radius:3px; height:3px;">
+            <div style="background:#7c3aed; border-radius:3px; height:3px; width:50%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:8px 12px; display:grid; gap:8px;">
+        <div style="background:#2d2d2d; border:1px solid #3d3d3d; border-radius:8px; padding:14px; cursor:pointer; display:flex; align-items:center; gap:12px;">
+          <div style="width:36px; height:36px; border-radius:8px; background:#7c3aed22; display:flex; align-items:center; justify-content:center; font-size:18px;">⚡</div>
+          <div style="flex:1;"><div style="font-size:13px; font-weight:600; color:#ddd;">Skills</div><div style="font-size:11px; color:#888;">8 installed</div></div>
+          <div style="color:#555;">›</div>
+        </div>
+        <div style="background:#2d2d2d; border:1px solid #3d3d3d; border-radius:8px; padding:14px; cursor:pointer; display:flex; align-items:center; gap:12px;">
+          <div style="width:36px; height:36px; border-radius:8px; background:#0891b222; display:flex; align-items:center; justify-content:center; font-size:18px;">🔌</div>
+          <div style="flex:1;"><div style="font-size:13px; font-weight:600; color:#ddd;">Connectors</div><div style="font-size:11px; color:#888;">5 connected</div></div>
+          <div style="background:#e8a51733; color:#e8a517; padding:2px 6px; border-radius:4px; font-size:10px;">1</div>
+        </div>
+        <div style="background:#2d2d2d; border:1px solid #3d3d3d; border-radius:8px; padding:14px; cursor:pointer; display:flex; align-items:center; gap:12px;">
+          <div style="width:36px; height:36px; border-radius:8px; background:#e8a51722; display:flex; align-items:center; justify-content:center; font-size:18px;">📖</div>
+          <div style="flex:1;"><div style="font-size:13px; font-weight:600; color:#ddd;">Guides</div><div style="font-size:11px; color:#888;">4 available</div></div>
+          <div style="color:#555;">›</div>
+        </div>
+      </div>
+
+      <div style="padding:12px; margin-top:8px; border-top:1px solid #333;">
+        <div style="display:flex; align-items:center; gap:8px; font-size:11px;">
+          <div style="width:8px; height:8px; border-radius:50%; background:#16a34a;"></div>
+          <span style="color:#888;">Roo Code connected</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div style="padding:0.75rem; border:1px solid #444; border-radius:6px; margin-bottom:12px;">
+      <strong>Sidebar does three things only</strong>
+      <p style="margin:0.25rem 0 0; font-size:0.85em; opacity:0.8;">1. Search (takes over with results view)<br>2. Navigate (buttons open center panes)<br>3. Status (Roo connection, attention badges)</p>
+    </div>
+    <div style="padding:0.75rem; border:1px solid #444; border-radius:6px; margin-bottom:12px;">
+      <strong>Clicking a button opens a center pane</strong>
+      <p style="margin:0.25rem 0 0; font-size:0.85em; opacity:0.8;">"Skills" → opens Skills list as a WebviewPanel in the editor area. "Connectors" → Connectors list panel. No list states in the sidebar.</p>
+    </div>
+    <div style="padding:0.75rem; border:1px solid #444; border-radius:6px;">
+      <strong>Each item gets its own webview</strong>
+      <p style="margin:0.25rem 0 0; font-size:0.85em; opacity:0.8;">Click "Sprint Retro" in the skills list → opens a dedicated Sprint Retro webview panel. Multiple skill panels can be open simultaneously as tabs.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: ~/.pmcode DIRECTORY -->
+<div class="section" style="margin-top:2.5rem;">
+  <h3>2. ~/.pmcode — The Config Home</h3>
+  <p style="font-size:0.9em; color:#aaa;">All PM Code state lives in one directory. Portable, inspectable, git-friendly.</p>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">~/.pmcode/ directory structure</div>
+  <div class="mockup-body" style="padding:20px; font-family:monospace; font-size:12px; line-height:1.8; color:#aaa;">
+    <div style="color:#ddd;">~/.pmcode/</div>
+    <div>├── .env<span style="color:#666;">                          # credentials: API tokens, keys</span></div>
+    <div>├── config.json<span style="color:#666;">                   # user preferences, UI state, FTUE progress</span></div>
+    <div>├── memory/<span style="color:#666;">                       # user memory (like CLAUDE.md learnings)</span></div>
+    <div>│   ├── preferences.md<span style="color:#666;">            # how user likes to work</span></div>
+    <div>│   └── context.md<span style="color:#666;">                # project-specific notes</span></div>
+    <div>├── skills/<span style="color:#666;">                       # skill definitions</span></div>
+    <div>│   ├── idea-triage.json<span style="color:#666;">           # bundled skill</span></div>
+    <div>│   ├── sprint-retro.json<span style="color:#666;">          # bundled skill</span></div>
+    <div>│   ├── prd-writer.json<span style="color:#666;">            # bundled skill</span></div>
+    <div>│   └── custom/<span style="color:#666;">                   # user-created skills</span></div>
+    <div>├── connectors/<span style="color:#666;">                   # connector definitions & state</span></div>
+    <div>│   ├── jira.json<span style="color:#666;">                 # config (non-secret settings)</span></div>
+    <div>│   ├── github.json</div>
+    <div>│   ├── monday.json</div>
+    <div>│   ├── aha.json</div>
+    <div>│   └── tavily.json</div>
+    <div>├── guides/<span style="color:#666;">                       # guide progress & bookmarks</span></div>
+    <div>│   └── progress.json</div>
+    <div>└── history/<span style="color:#666;">                      # config snapshots for rollback</span></div>
+    <div>    ├── 2026-03-30T10-00.json</div>
+    <div>    └── 2026-03-30T11-30.json</div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1.5rem;">
+  <div style="padding:0.75rem; border:1px solid #444; border-radius:6px;">
+    <strong>Credentials in ~/.pmcode/.env</strong>
+    <p style="margin:0.25rem 0 0; font-size:0.85em; opacity:0.8;">JIRA_API_TOKEN=xxx<br>MONDAY_API_TOKEN=xxx<br>TAVILY_API_KEY=xxx<br>Standard .env format. Skills and connectors read from here.</p>
+  </div>
+  <div style="padding:0.75rem; border:1px solid #444; border-radius:6px;">
+    <strong>MCP config written directly to Roo</strong>
+    <p style="margin:0.25rem 0 0; font-size:0.85em; opacity:0.8;">Connectors write their MCP server definitions directly to Roo's config files. Tokens referenced from .env or inlined per Roo's format.</p>
+  </div>
+  <div style="padding:0.75rem; border:1px solid #444; border-radius:6px;">
+    <strong>User memory</strong>
+    <p style="margin:0.25rem 0 0; font-size:0.85em; opacity:0.8;">~/.pmcode/memory/ stores learned preferences, project context, and behavioral notes — similar to how Claude Code uses CLAUDE.md. Persists across sessions.</p>
+  </div>
+  <div style="padding:0.75rem; border:1px solid #444; border-radius:6px;">
+    <strong>Portable & inspectable</strong>
+    <p style="margin:0.25rem 0 0; font-size:0.85em; opacity:0.8;">Everything is plain files. Users can back up, sync, share, or hand-edit if needed. No opaque VS Code globalState.</p>
+  </div>
+</div>
+
+<!-- SECTION 3: COMMAND ARCHITECTURE -->
+<div class="section" style="margin-top:2.5rem;">
+  <h3>3. VS Code Command Architecture</h3>
+  <p style="font-size:0.9em; color:#aaa;">Every screen and action is a VS Code command. Enables agent automation, keyboard shortcuts, and the command palette.</p>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">Command Registry</div>
+  <div class="mockup-body" style="padding:20px; font-size:12px;">
+
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px; font-weight:600; color:#7c3aed; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Navigation</div>
+      <div style="display:grid; gap:4px; font-family:monospace; font-size:11px;">
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.openSkills</span> <span style="color:#888;">Open Skills list panel</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.openConnectors</span> <span style="color:#888;">Open Connectors list panel</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.openGuides</span> <span style="color:#888;">Open Guides list panel</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.openSkill {id}</span> <span style="color:#888;">Open specific skill detail panel</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.openConnector {id}</span> <span style="color:#888;">Open specific connector config panel</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.openGuide {id}</span> <span style="color:#888;">Open specific guide panel</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.openDashboard</span> <span style="color:#888;">Open companion dashboard</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.openSettings</span> <span style="color:#888;">Open PM Code settings</span></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px; font-weight:600; color:#0891b2; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Connector Actions</div>
+      <div style="display:grid; gap:4px; font-family:monospace; font-size:11px;">
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.connector.install {id}</span> <span style="color:#888;">Install a connector</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.connector.configure {id}</span> <span style="color:#888;">Open connector config form</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.connector.test {id}</span> <span style="color:#888;">Test connector health</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.connector.enable {id}</span> <span style="color:#888;">Enable a connector</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.connector.disable {id}</span> <span style="color:#888;">Disable a connector</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.connector.remove {id}</span> <span style="color:#888;">Remove a connector</span></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px; font-weight:600; color:#7c3aed; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Skill Actions</div>
+      <div style="display:grid; gap:4px; font-family:monospace; font-size:11px;">
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.skill.install {id}</span> <span style="color:#888;">Install a skill</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.skill.remove {id}</span> <span style="color:#888;">Remove a skill</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.skill.run {id}</span> <span style="color:#888;">Run skill (inject prompt into Roo)</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.skill.sendPrompt {text}</span> <span style="color:#888;">Send arbitrary prompt to Roo</span></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px; font-weight:600; color:#e8a517; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Guide Actions</div>
+      <div style="display:grid; gap:4px; font-family:monospace; font-size:11px;">
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.guide.start {id}</span> <span style="color:#888;">Start or resume a guide</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.guide.completeStep {id} {step}</span> <span style="color:#888;">Mark step complete</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.guide.reset {id}</span> <span style="color:#888;">Reset guide progress</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:11px; font-weight:600; color:#16a34a; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">System</div>
+      <div style="display:grid; gap:4px; font-family:monospace; font-size:11px;">
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.checkDependencies</span> <span style="color:#888;">Run system dependency check</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.healthCheck</span> <span style="color:#888;">Check all connector health</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.rollback</span> <span style="color:#888;">Rollback to previous config state</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.resetFTUE</span> <span style="color:#888;">Reset first-time experience</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.focusSidebar</span> <span style="color:#888;">Focus the PM Code sidebar</span></div>
+        <div style="display:flex; gap:12px;"><span style="color:#ddd; min-width:280px;">pmcode.search {query}</span> <span style="color:#888;">Open sidebar with search pre-filled</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-top:1rem; margin-bottom:1.5rem;">
+  <div style="padding:0.75rem; border:1px solid #444; border-radius:6px;">
+    <strong>Agent-friendly</strong>
+    <p style="margin:0.25rem 0 0; font-size:0.85em; opacity:0.8;">Roo can call <code>pmcode.connector.test jira</code> to verify a connector works, or <code>pmcode.openGuide sharing-context</code> to help a user. Full programmatic control.</p>
+  </div>
+  <div style="padding:0.75rem; border:1px solid #444; border-radius:6px;">
+    <strong>Command palette works</strong>
+    <p style="margin:0.25rem 0 0; font-size:0.85em; opacity:0.8;">All commands appear in Cmd+Shift+P with human-readable titles. Power users (mode A) can access everything without the sidebar.</p>
+  </div>
+</div>
+
+<!-- SECTION 4: REVISED DATA FLOW -->
+<div class="section" style="margin-top:2.5rem;">
+  <h3>4. Revised Data Flow</h3>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">Where Data Lives — Updated</div>
+  <div class="mockup-body" style="padding:20px; font-size:12px;">
+    <div style="display:grid; grid-template-columns:auto auto 1fr; gap:6px 16px;">
+      <span style="font-weight:600; color:#888;">Data</span> <span style="font-weight:600; color:#888;">Location</span> <span style="font-weight:600; color:#888;">Rationale</span>
+
+      <span style="color:#ddd;">Credentials</span> <span style="color:#aaa;">~/.pmcode/.env</span> <span style="color:#888;">Standard .env, readable by skills and connectors</span>
+
+      <span style="color:#ddd;">MCP server defs</span> <span style="color:#aaa;">Roo's mcp.json directly</span> <span style="color:#888;">No indirection — PM Code writes where Roo reads</span>
+
+      <span style="color:#ddd;">Skill definitions</span> <span style="color:#aaa;">~/.pmcode/skills/*.json</span> <span style="color:#888;">Portable, inspectable, shareable</span>
+
+      <span style="color:#ddd;">Connector config</span> <span style="color:#aaa;">~/.pmcode/connectors/*.json</span> <span style="color:#888;">Non-secret settings (URLs, project IDs)</span>
+
+      <span style="color:#ddd;">User memory</span> <span style="color:#aaa;">~/.pmcode/memory/*.md</span> <span style="color:#888;">Preferences, context, learned behavior</span>
+
+      <span style="color:#ddd;">Guide progress</span> <span style="color:#aaa;">~/.pmcode/guides/progress.json</span> <span style="color:#888;">Which steps completed, bookmarks</span>
+
+      <span style="color:#ddd;">UI state</span> <span style="color:#aaa;">~/.pmcode/config.json</span> <span style="color:#888;">FTUE status, dismissed notices, C/B/A mode</span>
+
+      <span style="color:#ddd;">Config history</span> <span style="color:#aaa;">~/.pmcode/history/*.json</span> <span style="color:#888;">Snapshots for rollback/undo</span>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:1.5rem;">
+  <p class="subtitle">Does this revised architecture feel right? Ready to update the spec and move to implementation planning?</p>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="approve" onclick="toggleSelect(this)">
+    <div class="letter" style="background:#16a34a;">✓</div>
+    <div class="content">
+      <h3>Update the spec and create the implementation plan</h3>
+      <p>All four changes incorporated: ~/.pmcode config, center panes for lists, own webviews per item, VS Code commands for everything.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="tweak" onclick="toggleSelect(this)">
+    <div class="letter" style="background:#e8a517;">✎</div>
+    <div class="content">
+      <h3>More tweaks needed</h3>
+      <p>Let me know what to adjust.</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
