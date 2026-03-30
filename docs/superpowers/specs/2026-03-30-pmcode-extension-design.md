@@ -633,25 +633,28 @@ The sidebar includes a Marketplace nav button (below Skills/Connectors/Guides) s
 
 PM Code is distributed as a `.vsix` file and installed via a cross-platform install script, since it is not published to the VS Code marketplace.
 
-### Install Script (install.sh / install.ps1)
+### Install Script
 
-**Unix (macOS/Linux):**
+A single `install.sh` handles all platforms. On Windows (Git Bash, MSYS2, or WSL), it auto-detects the environment and bootstraps PowerShell for native installation. A standalone `install.ps1` is also available for direct PowerShell use.
+
+**All platforms (macOS, Linux, Windows with Git Bash):**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/caseyg/pmcode/main/install.sh | bash
 ```
 
-**Windows (PowerShell):**
+**Windows (PowerShell directly):**
 ```powershell
 iwr -useb https://raw.githubusercontent.com/caseyg/pmcode/main/install.ps1 | iex
 ```
 
 **The install script:**
-1. Detects the operating system (macOS, Linux, Windows)
-2. Detects installed VS Code variants (VS Code, Cursor, Windsurf, VS Code Insiders)
-3. Downloads the latest `.vsix` release from GitHub
-4. Installs the extension via the `code --install-extension` CLI
-5. Creates the `~/.pmcode/` directory structure
-6. Verifies the installation succeeded
+1. Detects the operating system (macOS, Linux, Windows — including WSL and MSYS/Git Bash)
+2. On Windows: attempts to hand off to PowerShell for native path handling; falls back to bash if unavailable
+3. Detects installed VS Code variants (VS Code, Cursor, Windsurf, VS Code Insiders) via CLI and common install paths
+4. Downloads the latest `.vsix` release from GitHub (via `gh` CLI), or builds from source as fallback
+5. Installs the extension via `code --install-extension` (or manual copy if VSCE unavailable)
+6. Creates the `~/.pmcode/` directory structure with default config and `.env` template
+7. Verifies the installation succeeded
 
 ### Cross-Platform Configuration Paths
 

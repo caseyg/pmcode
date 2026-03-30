@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 #
-# PM Code installer for macOS and Linux
+# PM Code — cross-platform installer (macOS, Linux, Windows)
 # Usage: curl -fsSL https://raw.githubusercontent.com/caseyg/pmcode/main/install.sh | bash
+#
+# On Windows (Git Bash, MSYS2, or WSL), this script detects the platform and
+# either handles installation natively or bootstraps PowerShell automatically.
 #
 set -euo pipefail
 
 REPO="caseyg/pmcode"
-PMCODE_DIR="$HOME/.pmcode"
 BOLD="\033[1m"
 GREEN="\033[32m"
 YELLOW="\033[33m"
@@ -19,14 +21,24 @@ error() { printf "${BOLD}${RED}[pmcode]${RESET} %s\n" "$1" >&2; }
 
 # ── Detect OS ───────────────────────────────────────────────────────────────
 
+OS=""
+WINDOWS=false
+
 detect_os() {
   case "$(uname -s)" in
-    Darwin)  echo "macos" ;;
-    Linux)   echo "linux" ;;
+    Darwin)           OS="macos" ;;
+    Linux)
+      # Check if running under WSL
+      if grep -qiE '(microsoft|wsl)' /proc/version 2>/dev/null; then
+        OS="windows"
+        WINDOWS=true
+      else
+        OS="linux"
+      fi
+      ;;
     MINGW*|MSYS*|CYGWIN*)
-      error "Windows detected. Please use install.ps1 instead:"
-      error "  iwr -useb https://raw.githubusercontent.com/$REPO/main/install.ps1 | iex"
-      exit 1
+      OS="windows"
+      WINDOWS=true
       ;;
     *)
       error "Unsupported operating system: $(uname -s)"
@@ -35,33 +47,96 @@ detect_os() {
   esac
 }
 
+# ── Windows: resolve native paths ──────────────────────────────────────────
+
+# Convert a Unix-style path to a Windows-native path (for MSYS/Git Bash)
+win_path() {
+  if command -v cygpath &>/dev/null; then
+    cygpath -w "$1"
+  else
+    echo "$1" | sed 's|^/c/|C:/|;s|^/d/|D:/|;s|^/\([a-zA-Z]\)/|\1:/|;s|/|\\|g'
+  fi
+}
+
+# Get the Windows home directory
+win_home() {
+  if [[ -n "${USERPROFILE:-}" ]]; then
+    echo "$USERPROFILE"
+  elif [[ -n "${HOME:-}" ]]; then
+    win_path "$HOME"
+  else
+    echo "C:\\Users\\$USER"
+  fi
+}
+
+# ── Windows: try PowerShell bootstrap ──────────────────────────────────────
+
+try_powershell() {
+  local ps_cmd=""
+  if command -v pwsh &>/dev/null; then
+    ps_cmd="pwsh"
+  elif command -v powershell.exe &>/dev/null; then
+    ps_cmd="powershell.exe"
+  elif command -v powershell &>/dev/null; then
+    ps_cmd="powershell"
+  fi
+
+  if [[ -n "$ps_cmd" ]]; then
+    info "Windows detected — launching PowerShell installer..."
+    local script_url="https://raw.githubusercontent.com/$REPO/main/install.ps1"
+    "$ps_cmd" -NoProfile -ExecutionPolicy Bypass -Command \
+      "Invoke-WebRequest -UseBasicParsing '$script_url' | Invoke-Expression"
+    return 0
+  fi
+  return 1
+}
+
+# ── Detect config directory ────────────────────────────────────────────────
+
+get_pmcode_dir() {
+  if $WINDOWS; then
+    local wh
+    wh=$(win_home)
+    echo "${wh}\\.pmcode"
+  else
+    echo "$HOME/.pmcode"
+  fi
+}
+
+PMCODE_DIR=""  # set in main after OS detection
+
 # ── Detect VS Code variants ────────────────────────────────────────────────
 
 detect_editors() {
   local found=()
 
-  # VS Code
-  if command -v code &>/dev/null; then
-    found+=("code")
+  # CLI commands to check
+  local cmds=("code" "code-insiders" "cursor" "windsurf")
+
+  # On Windows, also check .cmd variants
+  if $WINDOWS; then
+    cmds+=("code.cmd" "code-insiders.cmd" "cursor.cmd" "windsurf.cmd")
   fi
 
-  # VS Code Insiders
-  if command -v code-insiders &>/dev/null; then
-    found+=("code-insiders")
-  fi
+  for cmd in "${cmds[@]}"; do
+    if command -v "$cmd" &>/dev/null; then
+      # Deduplicate (e.g. code and code.cmd might resolve to the same thing)
+      local base="${cmd%.cmd}"
+      local already=false
+      for f in "${found[@]+"${found[@]}"}"; do
+        if [[ "$(basename "${f%.cmd}")" == "$base" ]]; then
+          already=true
+          break
+        fi
+      done
+      if ! $already; then
+        found+=("$cmd")
+      fi
+    fi
+  done
 
-  # Cursor
-  if command -v cursor &>/dev/null; then
-    found+=("cursor")
-  fi
-
-  # Windsurf
-  if command -v windsurf &>/dev/null; then
-    found+=("windsurf")
-  fi
-
-  # Check common macOS app locations if CLI not in PATH
-  if [[ "${#found[@]}" -eq 0 && "$(detect_os)" == "macos" ]]; then
+  # macOS: check common app locations if nothing found in PATH
+  if [[ "${#found[@]}" -eq 0 && "$OS" == "macos" ]]; then
     local apps=(
       "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
       "/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/bin/code-insiders"
@@ -69,6 +144,22 @@ detect_editors() {
       "/Applications/Windsurf.app/Contents/Resources/app/bin/windsurf"
     )
     for app in "${apps[@]}"; do
+      if [[ -f "$app" ]]; then
+        found+=("$app")
+      fi
+    done
+  fi
+
+  # Windows: check common install locations
+  if [[ "${#found[@]}" -eq 0 ]] && $WINDOWS; then
+    local localappdata="${LOCALAPPDATA:-${USERPROFILE:-$HOME}/AppData/Local}"
+    local win_apps=(
+      "$localappdata/Programs/Microsoft VS Code/bin/code.cmd"
+      "$localappdata/Programs/Microsoft VS Code Insiders/bin/code-insiders.cmd"
+      "$localappdata/Programs/cursor/resources/app/bin/cursor.cmd"
+      "$localappdata/Programs/Windsurf/bin/windsurf.cmd"
+    )
+    for app in "${win_apps[@]}"; do
       if [[ -f "$app" ]]; then
         found+=("$app")
       fi
@@ -120,7 +211,6 @@ download_vsix() {
     if command -v npx &>/dev/null; then
       npx @vscode/vsce package --no-dependencies -o "$vsix_path" 2>/dev/null
     else
-      # Manual packaging fallback: just copy to extensions dir
       echo "__MANUAL__:$clone_dir"
       return
     fi
@@ -142,21 +232,32 @@ install_extension() {
 
   for editor in "${editors[@]}"; do
     local editor_name
-    editor_name=$(basename "$editor")
+    editor_name=$(basename "${editor%.cmd}")
     info "Installing PM Code into $editor_name..."
 
     if [[ "$vsix_path" == __MANUAL__:* ]]; then
-      # Manual install: copy to extensions directory
       local src_dir="${vsix_path#__MANUAL__:}"
-      local ext_dir="$HOME/.vscode/extensions/pmcode.pmcode-0.1.0"
+      local ext_base="$HOME/.vscode"
 
-      # Adjust for editor variant
       case "$editor_name" in
-        code-insiders) ext_dir="$HOME/.vscode-insiders/extensions/pmcode.pmcode-0.1.0" ;;
-        cursor)        ext_dir="$HOME/.cursor/extensions/pmcode.pmcode-0.1.0" ;;
-        windsurf)      ext_dir="$HOME/.windsurf/extensions/pmcode.pmcode-0.1.0" ;;
+        code-insiders) ext_base="$HOME/.vscode-insiders" ;;
+        cursor)        ext_base="$HOME/.cursor" ;;
+        windsurf)      ext_base="$HOME/.windsurf" ;;
       esac
 
+      # On Windows via MSYS/Git Bash, use USERPROFILE
+      if $WINDOWS && [[ -n "${USERPROFILE:-}" ]]; then
+        local win_base
+        case "$editor_name" in
+          code-insiders) win_base="$USERPROFILE/.vscode-insiders" ;;
+          cursor)        win_base="$USERPROFILE/.cursor" ;;
+          windsurf)      win_base="$USERPROFILE/.windsurf" ;;
+          *)             win_base="$USERPROFILE/.vscode" ;;
+        esac
+        ext_base="$win_base"
+      fi
+
+      local ext_dir="$ext_base/extensions/pmcode.pmcode-0.1.0"
       mkdir -p "$ext_dir"
       cp -r "$src_dir"/dist "$src_dir"/package.json "$src_dir"/media "$src_dir"/webview-ui "$src_dir"/skills "$ext_dir/" 2>/dev/null || true
       info "Installed to $ext_dir"
@@ -171,24 +272,19 @@ install_extension() {
 # ── Create config directory ────────────────────────────────────────────────
 
 setup_config() {
-  info "Setting up ~/.pmcode/ config directory..."
+  info "Setting up config directory: $PMCODE_DIR"
 
-  local dirs=(
-    "$PMCODE_DIR"
-    "$PMCODE_DIR/skills"
-    "$PMCODE_DIR/connectors"
-    "$PMCODE_DIR/guides"
-    "$PMCODE_DIR/memory"
-    "$PMCODE_DIR/history"
-  )
+  # Use $HOME-based path for mkdir (works in both MSYS and native)
+  local dir="$HOME/.pmcode"
 
-  for dir in "${dirs[@]}"; do
-    mkdir -p "$dir"
+  local subdirs=("skills" "connectors" "guides" "memory" "history")
+  mkdir -p "$dir"
+  for sub in "${subdirs[@]}"; do
+    mkdir -p "$dir/$sub"
   done
 
-  # Create default config.json if it doesn't exist
-  if [[ ! -f "$PMCODE_DIR/config.json" ]]; then
-    cat > "$PMCODE_DIR/config.json" << 'CONF'
+  if [[ ! -f "$dir/config.json" ]]; then
+    cat > "$dir/config.json" << 'CONF'
 {
   "ftue": { "completed": false, "completedSteps": [], "phase": "companion" },
   "ui": { "sidebarCollapsed": false, "lastOpenedPanel": null, "searchHistory": [] },
@@ -201,9 +297,8 @@ CONF
     info "Created default config.json"
   fi
 
-  # Create .env if it doesn't exist
-  if [[ ! -f "$PMCODE_DIR/.env" ]]; then
-    cat > "$PMCODE_DIR/.env" << 'ENV'
+  if [[ ! -f "$dir/.env" ]]; then
+    cat > "$dir/.env" << 'ENV'
 # PM Code API tokens and keys
 # Add your tokens here or configure them via the PM Code UI.
 #
@@ -217,7 +312,7 @@ ENV
   fi
 }
 
-# ── Verify installation ───────────────────────────────────────────────────
+# ── Verify ─────────────────────────────────────────────────────────────────
 
 verify() {
   local editors=("$@")
@@ -251,9 +346,17 @@ main() {
   printf "${BOLD}PM Code Installer${RESET}\n"
   echo ""
 
-  local os_name
-  os_name=$(detect_os)
-  info "Detected OS: $os_name"
+  detect_os
+  info "Detected OS: $OS"
+  PMCODE_DIR=$(get_pmcode_dir)
+
+  # On Windows, try to hand off to PowerShell for best compatibility
+  if $WINDOWS; then
+    if try_powershell; then
+      exit 0
+    fi
+    info "PowerShell not available — continuing with bash installer"
+  fi
 
   # Detect editors
   local editors
@@ -263,14 +366,20 @@ main() {
   # Check prerequisites
   if ! command -v git &>/dev/null; then
     error "git is required. Install it first:"
-    [[ "$os_name" == "macos" ]] && error "  xcode-select --install"
-    [[ "$os_name" == "linux" ]] && error "  sudo apt install git  (or yum, pacman, etc.)"
+    case "$OS" in
+      macos)   error "  xcode-select --install" ;;
+      linux)   error "  sudo apt install git  (or yum, pacman, etc.)" ;;
+      windows) error "  https://git-scm.com/download/win" ;;
+    esac
     exit 1
   fi
 
   if ! command -v node &>/dev/null; then
     warn "Node.js not found. It will be needed for MCP connectors."
-    warn "Install: https://nodejs.org or via nvm"
+    case "$OS" in
+      windows) warn "Install from: https://nodejs.org" ;;
+      *)       warn "Install: https://nodejs.org or via nvm" ;;
+    esac
   fi
 
   # Download or build
@@ -278,16 +387,16 @@ main() {
   vsix_path=$(download_vsix)
   info "Package ready: $vsix_path"
 
-  # Install into each editor
+  # Install
   install_extension "$vsix_path" "${editors[@]}"
 
-  # Set up config
+  # Config
   setup_config
 
   # Verify
   verify "${editors[@]}"
 
-  # Cleanup temp files
+  # Cleanup
   if [[ "$vsix_path" != __MANUAL__:* ]]; then
     rm -rf "$(dirname "$vsix_path")" 2>/dev/null || true
   fi
