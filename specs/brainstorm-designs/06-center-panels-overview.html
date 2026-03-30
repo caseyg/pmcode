@@ -1,0 +1,201 @@
+<h2>Center Panels — The Three Core Experiences</h2>
+<p class="subtitle">Each opens in the editor area when clicking an item in the sidebar. Rich webview panels with full HTML/CSS.</p>
+
+<!-- CONNECTOR PANEL -->
+<div class="section">
+  <h3>1. Connector Detail Panel</h3>
+  <p style="font-size:0.9em; color:#aaa;">Opens when clicking a connector in the sidebar. Form-based setup, no JSON.</p>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">Connector: Jira</div>
+  <div class="mockup-body" style="padding:24px; max-width:600px; margin:0 auto;">
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+      <div style="width:40px;height:40px;border-radius:8px;background:#0052CC;display:flex;align-items:center;justify-content:center;font-size:20px;">📋</div>
+      <div>
+        <div style="font-size:16px; font-weight:600;">Jira</div>
+        <div style="font-size:12px; color:#888;">Let your AI assistant read and manage Jira issues, sprints, and boards</div>
+      </div>
+      <div style="margin-left:auto; background:#16a34a22; color:#16a34a; padding:4px 10px; border-radius:4px; font-size:11px;">● Connected</div>
+    </div>
+
+    <!-- Form -->
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px; font-weight:600; color:#aaa; margin-bottom:4px;">Instance URL</div>
+      <div style="background:var(--vscode-input-background, #3c3c3c); border:1px solid #555; border-radius:4px; padding:8px 10px; font-size:12px; color:#ddd;">https://myteam.atlassian.net</div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px; font-weight:600; color:#aaa; margin-bottom:4px;">API Token <span style="color:#666; font-weight:400;">· stored securely</span></div>
+      <div style="display:flex; gap:8px;">
+        <div style="flex:1; background:var(--vscode-input-background, #3c3c3c); border:1px solid #555; border-radius:4px; padding:8px 10px; font-size:12px; color:#666;">••••••••••••••••</div>
+        <div style="background:transparent; border:1px solid #555; border-radius:4px; padding:8px 12px; font-size:11px; color:#aaa; cursor:pointer;">Update</div>
+      </div>
+      <div style="font-size:10px; color:#0891b2; margin-top:4px; cursor:pointer;">How do I get an API token? →</div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px; font-weight:600; color:#aaa; margin-bottom:4px;">Default Project</div>
+      <div style="background:var(--vscode-input-background, #3c3c3c); border:1px solid #555; border-radius:4px; padding:8px 10px; font-size:12px; color:#ddd; display:flex; justify-content:space-between;">
+        <span>ACME (auto-detected)</span>
+        <span style="color:#666;">▼</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex; gap:8px; margin-bottom:16px; padding-top:8px; border-top:1px solid #333;">
+      <div style="background:#7c3aed; color:white; padding:8px 16px; border-radius:4px; font-size:12px; cursor:pointer;">Test Connection</div>
+      <div style="background:transparent; border:1px solid #555; color:#aaa; padding:8px 16px; border-radius:4px; font-size:12px; cursor:pointer;">Disable</div>
+      <div style="margin-left:auto; color:#666; padding:8px 16px; font-size:12px; cursor:pointer;">Remove</div>
+    </div>
+
+    <!-- What this unlocks -->
+    <div style="background:var(--vscode-input-background, #2d2d2d); border-radius:8px; padding:12px; border:1px solid #333;">
+      <div style="font-size:11px; font-weight:600; color:#aaa; margin-bottom:8px;">What you can do with Jira connected</div>
+      <div style="font-size:12px; color:#bbb; display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+        <div>💬 "Show my open tickets"</div>
+        <div>💬 "Summarize the current sprint"</div>
+        <div>💬 "Create a bug for login crash"</div>
+        <div>💬 "What's blocking the release?"</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SKILL PANEL -->
+<div class="section" style="margin-top:2rem;">
+  <h3>2. Skill Detail Panel</h3>
+  <p style="font-size:0.9em; color:#aaa;">Opens when clicking a skill in the sidebar. Install, configure, and understand what a skill does.</p>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">Skill: Sprint Retrospective</div>
+  <div class="mockup-body" style="padding:24px; max-width:600px; margin:0 auto;">
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+      <div style="width:40px;height:40px;border-radius:8px;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:20px;">🔄</div>
+      <div style="flex:1;">
+        <div style="font-size:16px; font-weight:600;">Sprint Retrospective</div>
+        <div style="font-size:12px; color:#888;">Generate a sprint retro summary from Jira data and team activity</div>
+      </div>
+    </div>
+
+    <!-- Requirements -->
+    <div style="background:var(--vscode-input-background, #2d2d2d); border-radius:8px; padding:12px; margin-bottom:16px; border:1px solid #333;">
+      <div style="font-size:11px; font-weight:600; color:#aaa; margin-bottom:8px;">Requires</div>
+      <div style="display:flex; gap:8px;">
+        <div style="display:flex;align-items:center;gap:4px;font-size:12px;">
+          <span style="color:#16a34a;">✓</span> <span style="color:#bbb;">Jira</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:12px;">
+          <span style="color:#16a34a;">✓</span> <span style="color:#bbb;">GitHub</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- How it works -->
+    <div style="margin-bottom:16px;">
+      <div style="font-size:13px; font-weight:600; margin-bottom:8px;">How it works</div>
+      <div style="font-size:12px; color:#bbb; line-height:1.6;">
+        This skill teaches your AI assistant to pull completed tickets, PRs merged, and blockers encountered during a sprint, then synthesize them into a structured retro document with <strong>What went well</strong>, <strong>What didn't</strong>, and <strong>Action items</strong>.
+      </div>
+    </div>
+
+    <!-- Example prompts -->
+    <div style="margin-bottom:16px;">
+      <div style="font-size:13px; font-weight:600; margin-bottom:8px;">Try saying</div>
+      <div style="display:grid; gap:6px;">
+        <div style="background:#1a1a1a; border-radius:4px; padding:8px 12px; font-size:12px; font-family:monospace; color:#ddd; display:flex; justify-content:space-between;">
+          <span>"Generate a retro for Sprint 23"</span>
+          <span style="color:#666; font-size:10px; cursor:pointer;">Copy</span>
+        </div>
+        <div style="background:#1a1a1a; border-radius:4px; padding:8px 12px; font-size:12px; font-family:monospace; color:#ddd; display:flex; justify-content:space-between;">
+          <span>"What were our biggest blockers this sprint?"</span>
+          <span style="color:#666; font-size:10px; cursor:pointer;">Copy</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:8px; padding-top:8px; border-top:1px solid #333;">
+      <div style="background:#7c3aed; color:white; padding:8px 20px; border-radius:4px; font-size:12px; cursor:pointer;">Install Skill</div>
+      <div style="color:#888; padding:8px 16px; font-size:12px; cursor:pointer;">View source</div>
+    </div>
+  </div>
+</div>
+
+<!-- GUIDE PANEL -->
+<div class="section" style="margin-top:2rem;">
+  <h3>3. Guide Panel</h3>
+  <p style="font-size:0.9em; color:#aaa;">Opens when clicking a guide in the sidebar. Step-by-step walkthrough with visuals and interactive actions.</p>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">Guide: Triage Bugs Like a Pro</div>
+  <div class="mockup-body" style="display:flex; min-height:350px;">
+    <!-- Step Nav -->
+    <div style="width:180px; background:var(--vscode-sideBar-background, #252526); border-right:1px solid #333; padding:16px 12px; flex-shrink:0;">
+      <div style="font-size:11px; text-transform:uppercase; color:#888; letter-spacing:0.5px; margin-bottom:12px;">Steps</div>
+      <div style="font-size:12px; padding:6px 8px; color:#16a34a; border-radius:4px;">✓ 1. What is bug triage?</div>
+      <div style="font-size:12px; padding:6px 8px; color:#16a34a; border-radius:4px;">✓ 2. Connect Jira</div>
+      <div style="font-size:12px; padding:6px 8px; background:#7c3aed22; color:#7c3aed; border-radius:4px; font-weight:600;">→ 3. Ask Roo to pull bugs</div>
+      <div style="font-size:12px; padding:6px 8px; color:#666; border-radius:4px;">4. Review & prioritize</div>
+      <div style="font-size:12px; padding:6px 8px; color:#666; border-radius:4px;">5. Create follow-ups</div>
+      <div style="font-size:12px; padding:6px 8px; color:#666; border-radius:4px;">6. Wrap up</div>
+      <div style="margin-top:16px; padding-top:12px; border-top:1px solid #333;">
+        <div style="font-size:10px; color:#888;">⏱ ~12 min remaining</div>
+        <div style="background:#333; border-radius:4px; height:4px; margin-top:6px;">
+          <div style="background:#7c3aed; border-radius:4px; height:4px; width:40%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step Content -->
+    <div style="flex:1; padding:24px; max-width:520px;">
+      <div style="font-size:11px; color:#7c3aed; font-weight:600; margin-bottom:4px;">Step 3 of 6</div>
+      <div style="font-size:18px; font-weight:600; margin-bottom:8px;">Ask Roo to Pull Your Bugs</div>
+      <div style="font-size:13px; color:#bbb; line-height:1.6; margin-bottom:16px;">
+        Now that Jira is connected, let's ask Roo Code to find open bugs in your project. This is where the magic happens — instead of clicking through Jira filters, you just ask in plain English.
+      </div>
+
+      <!-- Visual: screenshot placeholder -->
+      <div style="background:#1a1a2e; border:1px solid #333; border-radius:8px; padding:20px; text-align:center; margin-bottom:16px; min-height:80px; display:flex; align-items:center; justify-content:center;">
+        <div style="color:#666; font-size:12px;">[ Screenshot: Roo Code showing a list of Jira bugs in a formatted response ]</div>
+      </div>
+
+      <!-- Action -->
+      <div style="background:var(--vscode-input-background, #2d2d2d); border-radius:8px; padding:12px; border:1px solid #444; margin-bottom:16px;">
+        <div style="font-size:11px; color:#888; margin-bottom:6px;">Try this prompt:</div>
+        <div style="font-family:monospace; font-size:12px; color:#ddd; background:#1a1a1a; padding:8px; border-radius:4px; margin-bottom:8px;">"Show me all open bugs in ACME, sorted by priority"</div>
+        <div style="display:flex;gap:8px;">
+          <div style="background:#7c3aed; color:white; padding:6px 14px; border-radius:4px; font-size:12px; cursor:pointer;">Copy & Open Roo Code →</div>
+          <div style="color:#888; padding:6px 14px; font-size:12px; cursor:pointer;">I already did this</div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div style="display:flex; justify-content:space-between; padding-top:12px; border-top:1px solid #333;">
+        <div style="color:#888; font-size:12px; cursor:pointer;">← Previous step</div>
+        <div style="color:#7c3aed; font-size:12px; cursor:pointer;">Next step →</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:1.5rem;">
+  <h3>Panel Patterns</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem;">
+    <div style="padding:0.75rem; border:1px solid var(--vscode-panel-border, #333); border-radius:6px;">
+      <strong>Connectors</strong>
+      <p style="margin:0.25rem 0 0; font-size:0.85em; opacity:0.8;">Form-based config + test button + "what you can do" examples. No JSON ever.</p>
+    </div>
+    <div style="padding:0.75rem; border:1px solid var(--vscode-panel-border, #333); border-radius:6px;">
+      <strong>Skills</strong>
+      <p style="margin:0.25rem 0 0; font-size:0.85em; opacity:0.8;">Description + requirements check + example prompts with copy. One-click install.</p>
+    </div>
+    <div style="padding:0.75rem; border:1px solid var(--vscode-panel-border, #333); border-radius:6px;">
+      <strong>Guides</strong>
+      <p style="margin:0.25rem 0 0; font-size:0.85em; opacity:0.8;">Step nav + rich content + visuals + interactive "do it for me" actions. Progress saved.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:1rem;">
+  <p class="subtitle">How do these three panel types feel? Anything to adjust before I move to the sidebar navigation design?</p>
+</div>

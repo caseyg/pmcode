@@ -1,0 +1,323 @@
+<h2>Updated Design — New Features</h2>
+<p class="subtitle">Pre-installed defaults, system dependency checks, interactive panels, new guides</p>
+
+<!-- SECTION 1: PRE-INSTALL & DEPENDENCY CHECK -->
+<div class="section">
+  <h3>1. Pre-Installed Defaults + Background System Check</h3>
+  <p style="font-size:0.9em; color:#aaa;">Default skills and connectors are installed on first load. System dependencies install silently in the background during FTUE.</p>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">Background Progress — Bottom of Companion Panel</div>
+  <div class="mockup-body" style="padding:24px; max-width:600px; margin:0 auto;">
+
+    <!-- The user is doing FTUE Step 1 above... -->
+    <div style="text-align:center; color:#666; font-size:12px; padding:20px; border-bottom:1px solid #333; margin-bottom:20px;">[ ... FTUE Step 1 content above ... ]</div>
+
+    <!-- Subtle progress section pinned to bottom -->
+    <div style="background:var(--vscode-input-background, #1e1e2e); border:1px solid #333; border-radius:8px; padding:12px 16px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+        <div style="font-size:12px; font-weight:600; color:#bbb;">Setting things up in the background</div>
+        <div style="font-size:11px; color:#888;">4 of 7 done</div>
+      </div>
+      <div style="background:#333; border-radius:4px; height:4px; margin-bottom:10px;">
+        <div style="background:#7c3aed; border-radius:4px; height:4px; width:57%; transition: width 0.5s;"></div>
+      </div>
+      <div style="display:grid; grid-template-columns:auto 1fr; gap:4px 10px; font-size:11px;">
+        <span style="color:#16a34a;">✓</span> <span style="color:#888;">Developer tools ready</span>
+        <span style="color:#16a34a;">✓</span> <span style="color:#888;">Node.js ready</span>
+        <span style="color:#16a34a;">✓</span> <span style="color:#888;">Python ready</span>
+        <span style="color:#16a34a;">✓</span> <span style="color:#888;">GitHub CLI ready</span>
+        <span style="color:#e8a517;">⟳</span> <span style="color:#bbb;">Installing default connectors...</span>
+        <span style="color:#666;">○</span> <span style="color:#666;">Installing default skills</span>
+        <span style="color:#666;">○</span> <span style="color:#666;">Running connection tests</span>
+      </div>
+
+      <div style="margin-top:10px; padding-top:8px; border-top:1px solid #333;">
+        <div style="font-size:10px; color:#666; cursor:pointer;">▶ Show details</div>
+      </div>
+    </div>
+
+    <!-- Completion state -->
+    <div style="margin-top:16px; background:var(--vscode-input-background, #1e1e2e); border:1px solid #16a34a33; border-radius:8px; padding:10px 16px; display:flex; align-items:center; gap:10px;">
+      <span style="color:#16a34a; font-size:16px;">✓</span>
+      <div>
+        <div style="font-size:12px; color:#bbb;">All set! 5 connectors and 8 skills are ready to use.</div>
+        <div style="font-size:10px; color:#666;">Jira · GitHub · Monday · Aha! · Tavily</div>
+      </div>
+      <div style="margin-left:auto; font-size:11px; color:#666; cursor:pointer;">Dismiss</div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:0.75rem;">
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+    <div style="padding:0.75rem; border:1px solid var(--vscode-panel-border, #333); border-radius:6px;">
+      <strong>What it checks & installs</strong>
+      <p style="margin:0.25rem 0 0; font-size:0.85em; opacity:0.8;">Xcode CLI tools, Node.js (via nvm if missing), Python (via pyenv if missing), gh CLI (via Homebrew). Uses existing installs when found.</p>
+    </div>
+    <div style="padding:0.75rem; border:1px solid var(--vscode-panel-border, #333); border-radius:6px;">
+      <strong>Language is human, not technical</strong>
+      <p style="margin:0.25rem 0 0; font-size:0.85em; opacity:0.8;">"Developer tools ready" not "xcode-select installed". "GitHub CLI ready" not "gh 2.67.0 detected in PATH". Details available on expand.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: INTERACTIVE SKILL PANEL -->
+<div class="section" style="margin-top:2.5rem;">
+  <h3>2. Interactive Skill Panel (Updated)</h3>
+  <p style="font-size:0.9em; color:#aaa;">Prompts inject directly into Roo's input. Cross-linked to related content.</p>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">Skill: Sprint Retrospective</div>
+  <div class="mockup-body" style="padding:24px; max-width:600px; margin:0 auto;">
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+      <div style="width:40px;height:40px;border-radius:8px;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:20px;">🔄</div>
+      <div style="flex:1;">
+        <div style="font-size:16px; font-weight:600;">Sprint Retrospective</div>
+        <div style="font-size:12px; color:#888;">Generate a sprint retro from Jira data and team activity</div>
+      </div>
+      <div style="background:#16a34a22; color:#16a34a; padding:4px 10px; border-radius:4px; font-size:11px;">● Installed</div>
+    </div>
+
+    <!-- Try It — interactive buttons -->
+    <div style="margin-bottom:20px;">
+      <div style="font-size:13px; font-weight:600; margin-bottom:10px;">Try it now</div>
+      <div style="display:grid; gap:6px;">
+        <div style="background:#1a1a2e; border:1px solid #444; border-radius:6px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+          <span style="font-size:12px; font-family:monospace; color:#ddd;">"Generate a retro for Sprint 23"</span>
+          <div style="background:#7c3aed; color:white; padding:4px 12px; border-radius:4px; font-size:11px; white-space:nowrap;">Send to Roo →</div>
+        </div>
+        <div style="background:#1a1a2e; border:1px solid #444; border-radius:6px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+          <span style="font-size:12px; font-family:monospace; color:#ddd;">"What were our biggest blockers this sprint?"</span>
+          <div style="background:#7c3aed; color:white; padding:4px 12px; border-radius:4px; font-size:11px; white-space:nowrap;">Send to Roo →</div>
+        </div>
+        <div style="background:#1a1a2e; border:1px solid #444; border-radius:6px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+          <span style="font-size:12px; font-family:monospace; color:#ddd;">"Compare velocity between Sprint 22 and 23"</span>
+          <div style="background:#7c3aed; color:white; padding:4px 12px; border-radius:4px; font-size:11px; white-space:nowrap;">Send to Roo →</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Related content — cross-links -->
+    <div style="border-top:1px solid #333; padding-top:16px;">
+      <div style="font-size:13px; font-weight:600; margin-bottom:10px;">Related</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+
+        <div style="padding:8px 10px; border:1px solid #333; border-radius:6px; cursor:pointer;">
+          <div style="font-size:10px; color:#7c3aed; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Command</div>
+          <div style="font-size:12px; color:#ddd;">/retro</div>
+          <div style="font-size:10px; color:#888;">Quick-run this skill</div>
+        </div>
+
+        <div style="padding:8px 10px; border:1px solid #333; border-radius:6px; cursor:pointer;">
+          <div style="font-size:10px; color:#0891b2; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Connector</div>
+          <div style="font-size:12px; color:#ddd;">Jira</div>
+          <div style="font-size:10px; color:#888;">Required · Connected</div>
+        </div>
+
+        <div style="padding:8px 10px; border:1px solid #333; border-radius:6px; cursor:pointer;">
+          <div style="font-size:10px; color:#0891b2; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Connector</div>
+          <div style="font-size:12px; color:#ddd;">GitHub</div>
+          <div style="font-size:10px; color:#888;">Required · Connected</div>
+        </div>
+
+        <div style="padding:8px 10px; border:1px solid #333; border-radius:6px; cursor:pointer;">
+          <div style="font-size:10px; color:#e8a517; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Guide</div>
+          <div style="font-size:12px; color:#ddd;">Running Your First Retro</div>
+          <div style="font-size:10px; color:#888;">15 min · Step-by-step</div>
+        </div>
+
+        <div style="padding:8px 10px; border:1px solid #333; border-radius:6px; cursor:pointer;">
+          <div style="font-size:10px; color:#7c3aed; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Skill</div>
+          <div style="font-size:12px; color:#ddd;">Sprint Planning</div>
+          <div style="font-size:10px; color:#888;">Pairs well with this skill</div>
+        </div>
+
+        <div style="padding:8px 10px; border:1px solid #333; border-radius:6px; cursor:pointer;">
+          <div style="font-size:10px; color:#7c3aed; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Skill</div>
+          <div style="font-size:12px; color:#ddd;">Bug Triage</div>
+          <div style="font-size:10px; color:#888;">Related workflow</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3: NEW GUIDES -->
+<div class="section" style="margin-top:2.5rem;">
+  <h3>3. New Guides</h3>
+</div>
+
+<!-- Guide A: Context Engineering -->
+<div class="mockup">
+  <div class="mockup-header">VS Code Walkthrough: Projects, Files & Context</div>
+  <div class="mockup-body" style="display:flex; min-height:320px;">
+    <!-- Walkthrough step list (mimics VS Code Walkthrough UI) -->
+    <div style="width:280px; background:var(--vscode-sideBar-background, #252526); border-right:1px solid #333; padding:20px; flex-shrink:0;">
+      <div style="font-size:16px; font-weight:600; margin-bottom:4px;">Projects, Files & Context</div>
+      <div style="font-size:12px; color:#888; margin-bottom:16px;">How your AI assistant reads and understands your work</div>
+
+      <div style="font-size:12px; padding:6px 0; color:#16a34a;">✓ What is a project?</div>
+      <div style="font-size:12px; padding:6px 0; color:#16a34a;">✓ What are files?</div>
+      <div style="font-size:12px; padding:6px 0; font-weight:600; color:#7c3aed;">→ What your AI can see</div>
+      <div style="font-size:12px; padding:6px 0; color:#666;">Giving your AI better context</div>
+      <div style="font-size:12px; padding:6px 0; color:#666;">The instructions file</div>
+      <div style="font-size:12px; padding:6px 0; color:#666;">You're a context engineer now</div>
+    </div>
+
+    <!-- Step content -->
+    <div style="flex:1; padding:24px;">
+      <div style="font-size:11px; color:#7c3aed; font-weight:600; margin-bottom:4px;">Step 3 of 6</div>
+      <div style="font-size:18px; font-weight:600; margin-bottom:8px;">What Your AI Can See</div>
+      <div style="font-size:13px; color:#bbb; line-height:1.6; margin-bottom:16px;">
+        Your AI assistant can read the files in your project — like documents, spreadsheets, and code. The more relevant files it can see, the better answers it gives. This is called <strong style="color:#ddd;">context</strong>.
+      </div>
+      <div style="font-size:13px; color:#bbb; line-height:1.6; margin-bottom:16px;">
+        Think of it like briefing a new team member: the more background you share, the more useful their work will be. You're in charge of what your AI knows.
+      </div>
+
+      <div style="background:#1a1a2e; border-radius:8px; padding:16px; border:1px solid #333; margin-bottom:16px;">
+        <div style="font-size:12px; font-weight:600; color:#ddd; margin-bottom:8px;">Context Engineering in 30 seconds</div>
+        <div style="font-size:12px; color:#aaa; line-height:1.5;">
+          <strong>1.</strong> Put relevant docs in your project folder<br>
+          <strong>2.</strong> Write a short instructions file describing your goals<br>
+          <strong>3.</strong> Your AI reads these automatically — no extra steps<br>
+        </div>
+        <div style="font-size:11px; color:#666; margin-top:8px;">That's it. You're now doing context engineering. 🎉</div>
+      </div>
+
+      <div style="display:flex; gap:8px;">
+        <div style="background:#7c3aed; color:white; padding:6px 16px; border-radius:4px; font-size:12px; cursor:pointer;">Open my project folder →</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Guide B: Git with Natural Language -->
+<div class="mockup" style="margin-top:1.5rem;">
+  <div class="mockup-header">Guide: Talking to Git in Plain English</div>
+  <div class="mockup-body" style="display:flex; min-height:340px;">
+    <!-- Step Nav -->
+    <div style="width:180px; background:var(--vscode-sideBar-background, #252526); border-right:1px solid #333; padding:16px 12px; flex-shrink:0;">
+      <div style="font-size:11px; text-transform:uppercase; color:#888; letter-spacing:0.5px; margin-bottom:12px;">Steps</div>
+      <div style="font-size:12px; padding:6px 8px; color:#16a34a; border-radius:4px;">✓ 1. What is Git?</div>
+      <div style="font-size:12px; padding:6px 8px; color:#16a34a; border-radius:4px;">✓ 2. Why you'll never type a git command</div>
+      <div style="font-size:12px; padding:6px 8px; background:#7c3aed22; color:#7c3aed; border-radius:4px; font-weight:600;">→ 3. Save your work</div>
+      <div style="font-size:12px; padding:6px 8px; color:#666; border-radius:4px;">4. See what changed</div>
+      <div style="font-size:12px; padding:6px 8px; color:#666; border-radius:4px;">5. Undo mistakes</div>
+      <div style="font-size:12px; padding:6px 8px; color:#666; border-radius:4px;">6. Share with your team</div>
+      <div style="font-size:12px; padding:6px 8px; color:#666; border-radius:4px;">7. When things get messy</div>
+      <div style="margin-top:16px; padding-top:12px; border-top:1px solid #333;">
+        <div style="font-size:10px; color:#888;">⏱ ~10 min remaining</div>
+        <div style="background:#333; border-radius:4px; height:4px; margin-top:6px;">
+          <div style="background:#7c3aed; border-radius:4px; height:4px; width:33%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step Content -->
+    <div style="flex:1; padding:24px; max-width:520px;">
+      <div style="font-size:11px; color:#7c3aed; font-weight:600; margin-bottom:4px;">Step 3 of 7</div>
+      <div style="font-size:18px; font-weight:600; margin-bottom:8px;">Save Your Work</div>
+      <div style="font-size:13px; color:#bbb; line-height:1.6; margin-bottom:16px;">
+        Git saves snapshots of your project called <strong style="color:#ddd;">commits</strong>. Think of them as "save points" in a video game — you can always go back. Instead of memorizing commands, just tell Roo what you want.
+      </div>
+
+      <!-- Interactive prompts -->
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px; font-weight:600; margin-bottom:8px; color:#ddd;">Try these:</div>
+        <div style="display:grid; gap:6px;">
+          <div style="background:#1a1a2e; border:1px solid #444; border-radius:6px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+            <span style="font-size:12px; font-family:monospace; color:#ddd;">"Save my current work with a note about what I changed"</span>
+            <div style="background:#7c3aed; color:white; padding:4px 10px; border-radius:4px; font-size:11px; white-space:nowrap;">Send to Roo →</div>
+          </div>
+          <div style="background:#1a1a2e; border:1px solid #444; border-radius:6px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+            <span style="font-size:12px; font-family:monospace; color:#ddd;">"Show me what I've changed since my last save"</span>
+            <div style="background:#7c3aed; color:white; padding:4px 10px; border-radius:4px; font-size:11px; white-space:nowrap;">Send to Roo →</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--vscode-input-background, #2d2d2d); border-radius:8px; padding:12px; border:1px solid #333; margin-bottom:16px;">
+        <div style="font-size:11px; color:#888; margin-bottom:4px;">💡 Pro tip</div>
+        <div style="font-size:12px; color:#bbb;">Save often. Roo will write clear descriptions of each save automatically. If anything goes wrong, you can always say <em>"undo my last change"</em> or <em>"go back to how things were an hour ago."</em></div>
+      </div>
+
+      <!-- Related section -->
+      <div style="border-top:1px solid #333; padding-top:12px;">
+        <div style="font-size:11px; font-weight:600; color:#888; margin-bottom:6px;">Related</div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <div style="font-size:11px; padding:3px 8px; border:1px solid #333; border-radius:4px; color:#0891b2; cursor:pointer;">GitHub connector</div>
+          <div style="font-size:11px; padding:3px 8px; border:1px solid #333; border-radius:4px; color:#7c3aed; cursor:pointer;">/commit command</div>
+          <div style="font-size:11px; padding:3px 8px; border:1px solid #333; border-radius:4px; color:#e8a517; cursor:pointer;">Projects & Context guide</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: DEFAULT STACK -->
+<div class="section" style="margin-top:2.5rem;">
+  <h3>4. Default Stack (Pre-Installed)</h3>
+  <p style="font-size:0.9em; color:#aaa;">Everything below is installed automatically. Users can add/remove later.</p>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+  <div style="border:1px solid var(--vscode-panel-border, #333); border-radius:8px; padding:16px;">
+    <div style="font-size:13px; font-weight:600; margin-bottom:10px; color:#0891b2;">Default Connectors (5)</div>
+    <div style="display:grid; gap:6px; font-size:12px;">
+      <div style="display:flex; align-items:center; gap:8px;"><span>📋</span> <span style="color:#ddd;">Jira</span> <span style="color:#888; font-size:10px;">— project tracking</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><span>🐙</span> <span style="color:#ddd;">GitHub (gh CLI)</span> <span style="color:#888; font-size:10px;">— code & PRs</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><span>📊</span> <span style="color:#ddd;">Monday</span> <span style="color:#888; font-size:10px;">— work management</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><span>💡</span> <span style="color:#ddd;">Aha!</span> <span style="color:#888; font-size:10px;">— roadmaps & ideas</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><span>🔍</span> <span style="color:#ddd;">Tavily</span> <span style="color:#888; font-size:10px;">— AI web search</span></div>
+    </div>
+  </div>
+
+  <div style="border:1px solid var(--vscode-panel-border, #333); border-radius:8px; padding:16px;">
+    <div style="font-size:13px; font-weight:600; margin-bottom:10px; color:#7c3aed;">Default Skills (examples)</div>
+    <div style="display:grid; gap:6px; font-size:12px;">
+      <div style="display:flex; align-items:center; gap:8px;"><span>🔄</span> <span style="color:#ddd;">Sprint Retrospective</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><span>📋</span> <span style="color:#ddd;">Bug Triage</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><span>📝</span> <span style="color:#ddd;">PRD Writer</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><span>🔍</span> <span style="color:#ddd;">Competitive Research</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><span>📊</span> <span style="color:#ddd;">Sprint Planning</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><span>🐛</span> <span style="color:#ddd;">Bug Report Writer</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><span>📈</span> <span style="color:#ddd;">Standup Summary</span></div>
+      <div style="display:flex; align-items:center; gap:8px;"><span>🔬</span> <span style="color:#ddd;">User Story Breakdown</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:1.5rem;">
+  <h3>Guide Inventory</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+    <div style="padding:0.75rem; border:1px solid #444; border-radius:6px; border-left:3px solid #e8a517;">
+      <div style="font-size:10px; color:#e8a517; font-weight:600;">VS CODE WALKTHROUGH</div>
+      <div style="font-size:12px; font-weight:600; margin:4px 0 2px;">Getting Started with PM Code</div>
+      <div style="font-size:11px; color:#888;">FTUE: detect AI, connect first tool, try first prompt</div>
+    </div>
+    <div style="padding:0.75rem; border:1px solid #444; border-radius:6px; border-left:3px solid #e8a517;">
+      <div style="font-size:10px; color:#e8a517; font-weight:600;">VS CODE WALKTHROUGH</div>
+      <div style="font-size:12px; font-weight:600; margin:4px 0 2px;">Projects, Files & Context</div>
+      <div style="font-size:11px; color:#888;">What workspaces are, how AI reads files, context engineering</div>
+    </div>
+    <div style="padding:0.75rem; border:1px solid #444; border-radius:6px; border-left:3px solid #7c3aed;">
+      <div style="font-size:10px; color:#7c3aed; font-weight:600;">STEP-BY-STEP GUIDE</div>
+      <div style="font-size:12px; font-weight:600; margin:4px 0 2px;">Talking to Git in Plain English</div>
+      <div style="font-size:11px; color:#888;">Save, undo, share, recover — all in natural language</div>
+    </div>
+    <div style="padding:0.75rem; border:1px solid #444; border-radius:6px; border-left:3px solid #7c3aed;">
+      <div style="font-size:10px; color:#7c3aed; font-weight:600;">STEP-BY-STEP GUIDE</div>
+      <div style="font-size:12px; font-weight:600; margin:4px 0 2px;">Triage Bugs Like a Pro</div>
+      <div style="font-size:11px; color:#888;">Pull bugs from Jira, prioritize with AI, create follow-ups</div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:1rem;">
+  <p class="subtitle">Does this updated design capture everything? Ready to finalize the spec, or more to discuss?</p>
+</div>
