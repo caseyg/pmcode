@@ -6,7 +6,24 @@ PM Code targets users with zero VS Code familiarity entering the IDE for the fir
 
 ## Install
 
-**All platforms (macOS, Linux, Windows):**
+### From source (any machine)
+
+Requires: git, Node.js (v18+), VS Code (or Cursor/Windsurf)
+
+```bash
+git clone https://github.com/caseyg/pmcode.git
+cd pmcode
+npm install
+npm run compile
+npx @vscode/vsce package --no-dependencies
+code --install-extension pmcode-0.1.0.vsix
+```
+
+For Cursor or Windsurf, replace `code` with `cursor` or `windsurf`.
+
+After installing, restart your editor and look for the purple **PM** icon in the Activity Bar.
+
+### One-liner (macOS, Linux, Windows)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/caseyg/pmcode/main/install.sh | bash
