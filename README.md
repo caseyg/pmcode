@@ -105,6 +105,73 @@ All state lives in `~/.pmcode/`:
 └── history/          # Config snapshots for rollback
 ```
 
+## Testing with Claude computer use
+
+You can use Claude with computer use to visually test the extension end-to-end. Launch the Extension Development Host, then have Claude interact with the UI via screenshots and mouse/keyboard actions.
+
+### Setup
+
+1. Clone and build:
+   ```bash
+   git clone https://github.com/caseyg/pmcode.git
+   cd pmcode
+   npm install
+   npm run compile
+   ```
+
+2. Launch the Extension Development Host:
+   ```bash
+   code --extensionDevelopmentPath="$(pwd)"
+   ```
+   This opens a new VS Code window with PM Code loaded. Leave it in the foreground.
+
+### What to test
+
+Give Claude these instructions along with a screenshot of the VS Code window:
+
+**Sidebar:**
+- Click the purple **PM** icon in the Activity Bar (left edge). Verify the sidebar opens with search bar, Skills/Connectors/Guides/Marketplace buttons, and Roo Code status.
+- Type in the search bar. Verify filter chips appear and results update.
+- Click the **Update** button in the Marketplace section.
+
+**Skills panel:**
+- Click **Skills** in the sidebar. Verify a center panel opens showing skill cards (Idea Triage, Sprint Retro, PRD Writer).
+- Click a skill card. Verify the detail panel opens with description, connector requirements, and "Send to Roo" buttons.
+
+**Connectors panel:**
+- Click **Connectors** in the sidebar. Verify cards appear for Jira, GitHub, Monday, Aha!, Tavily with status dots.
+- Click a connector card. Verify the config form renders with fields (URL, API token), Test Connection button, and example prompts.
+
+**Guides panel:**
+- Click **Guides** in the sidebar. Verify guide cards appear with step counts and estimated time.
+- Click a guide. Verify the left rail shows numbered steps and the main area shows step content with "Send to Roo" prompt buttons and Previous/Next navigation.
+
+**Dashboard:**
+- Open Command Palette (Cmd+Shift+P / Ctrl+Shift+P), type "PM Code: Open Dashboard".
+- If FTUE not completed: verify Quick Start checklist, Roo Code status, system dependencies, recommended guides.
+- If FTUE completed: verify connector health grid, recently used skills, guide progress, quick action buttons.
+
+**FTUE Walkthrough:**
+- Open Command Palette, type "PM Code: Reset First-Time Experience", then "PM Code: Open Dashboard".
+- Verify the companion phase renders with the 4-step Quick Start checklist.
+
+### Command palette smoke test
+
+Open Command Palette and verify these commands are registered (type "PM Code"):
+- PM Code: Open Skills / Open Connectors / Open Guides
+- PM Code: Open Dashboard
+- PM Code: Browse Marketplace / Update Marketplace
+- PM Code: Send Prompt to Roo
+- PM Code: Health Check
+- PM Code: Check Dependencies
+
+### Tips for Claude computer use
+
+- After clicking a sidebar button, wait ~500ms for the center panel to render before taking a screenshot.
+- Webview panels use VS Code theme colors — dark/light theme both work.
+- If the PM icon doesn't appear in the Activity Bar, the extension may not have activated. Check the Output panel (View → Output → select "PM Code" from dropdown) for errors.
+- To reset all state: `rm -rf ~/.pmcode` and reload the window.
+
 ## Design
 
 See [docs/superpowers/specs/2026-03-30-pmcode-extension-design.md](docs/superpowers/specs/2026-03-30-pmcode-extension-design.md) for the full design spec.
