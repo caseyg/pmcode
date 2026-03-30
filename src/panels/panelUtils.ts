@@ -80,8 +80,8 @@ export interface ConnectorConfig {
   };
   cliTool?: {
     command: string;
-    authCommand: string;
-    statusCommand: string;
+    authCommand?: string;
+    statusCommand?: string;
   };
   examplePrompts: string[];
   relatedSkills: string[];
