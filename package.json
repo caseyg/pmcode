@@ -1,0 +1,144 @@
+{
+  "name": "pmcode",
+  "displayName": "PM Code",
+  "description": "Helps non-technical users onboard to AI IDEs, manage Agent Skills and Connectors, and follow in-app guides.",
+  "version": "0.1.0",
+  "publisher": "pmcode",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "pmcode",
+          "title": "PM Code",
+          "icon": "media/pmcode-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "pmcode": [
+        {
+          "type": "webview",
+          "id": "pmcode.sidebar",
+          "name": "PM Code"
+        }
+      ]
+    },
+    "walkthroughs": [
+      {
+        "id": "pmcode.gettingStarted",
+        "title": "Getting Started with PM Code",
+        "description": "Set up your AI-powered product management tools in minutes.",
+        "steps": [
+          {
+            "id": "pmcode.walkthrough.meetAI",
+            "title": "Meet your AI assistant",
+            "description": "Open the Roo Code sidebar to meet your AI assistant.\n[Open Roo Code](command:pmcode.openRooSidebar)",
+            "media": {
+              "markdown": "media/walkthrough/meet-ai.md"
+            },
+            "completionEvents": [
+              "onView:roocode.sidebar"
+            ]
+          },
+          {
+            "id": "pmcode.walkthrough.connectTool",
+            "title": "Connect your first tool",
+            "description": "Link a project management tool so your AI can access real data.\n[Connect a Tool](command:pmcode.openConnectors)",
+            "media": {
+              "markdown": "media/walkthrough/connect-tool.md"
+            },
+            "completionEvents": [
+              "onCommand:pmcode.connectorConfigured"
+            ]
+          },
+          {
+            "id": "pmcode.walkthrough.firstPrompt",
+            "title": "Try talking to your AI",
+            "description": "Send your first prompt to see AI in action.\n[Send a Prompt](command:pmcode.firstPrompt)",
+            "media": {
+              "markdown": "media/walkthrough/first-prompt.md"
+            },
+            "completionEvents": [
+              "onCommand:pmcode.firstPromptSent"
+            ]
+          },
+          {
+            "id": "pmcode.walkthrough.ready",
+            "title": "You're ready to go!",
+            "description": "Explore your skills, connectors, and guides.\n[Open Dashboard](command:pmcode.openDashboard)",
+            "media": {
+              "markdown": "media/walkthrough/ready.md"
+            },
+            "completionEvents": [
+              "onView:pmcode.dashboard"
+            ]
+          }
+        ]
+      }
+    ],
+    "commands": [
+      { "command": "pmcode.sendPrompt", "title": "PM Code: Send Prompt to Roo" },
+      { "command": "pmcode.focusSidebar", "title": "PM Code: Focus Sidebar" },
+      { "command": "pmcode.search", "title": "PM Code: Search" },
+      { "command": "pmcode.openDashboard", "title": "PM Code: Open Dashboard" },
+      { "command": "pmcode.openSettings", "title": "PM Code: Open Settings" },
+      { "command": "pmcode.openSkills", "title": "PM Code: Open Skills" },
+      { "command": "pmcode.openConnectors", "title": "PM Code: Open Connectors" },
+      { "command": "pmcode.openGuides", "title": "PM Code: Open Guides" },
+      { "command": "pmcode.openSkill", "title": "PM Code: Open Skill" },
+      { "command": "pmcode.openConnector", "title": "PM Code: Open Connector" },
+      { "command": "pmcode.openGuide", "title": "PM Code: Open Guide" },
+      { "command": "pmcode.connector.install", "title": "PM Code: Install Connector" },
+      { "command": "pmcode.connector.configure", "title": "PM Code: Configure Connector" },
+      { "command": "pmcode.connector.test", "title": "PM Code: Test Connector" },
+      { "command": "pmcode.connector.enable", "title": "PM Code: Enable Connector" },
+      { "command": "pmcode.connector.disable", "title": "PM Code: Disable Connector" },
+      { "command": "pmcode.connector.remove", "title": "PM Code: Remove Connector" },
+      { "command": "pmcode.skill.install", "title": "PM Code: Install Skill" },
+      { "command": "pmcode.skill.remove", "title": "PM Code: Remove Skill" },
+      { "command": "pmcode.skill.run", "title": "PM Code: Run Skill" },
+      { "command": "pmcode.guide.start", "title": "PM Code: Start Guide" },
+      { "command": "pmcode.guide.completeStep", "title": "PM Code: Complete Guide Step" },
+      { "command": "pmcode.guide.reset", "title": "PM Code: Reset Guide" },
+      { "command": "pmcode.checkDependencies", "title": "PM Code: Check Dependencies" },
+      { "command": "pmcode.healthCheck", "title": "PM Code: Health Check" },
+      { "command": "pmcode.rollback", "title": "PM Code: Rollback Configuration" },
+      { "command": "pmcode.resetFTUE", "title": "PM Code: Reset First-Time Experience" },
+      { "command": "pmcode.openRooSidebar", "title": "PM Code: Open Roo Code" },
+      { "command": "pmcode.firstPrompt", "title": "PM Code: First Prompt" },
+      { "command": "pmcode.connectorConfigured", "title": "PM Code: Connector Configured" },
+      { "command": "pmcode.firstPromptSent", "title": "PM Code: First Prompt Sent" }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
+    "watch": "npm run compile -- --watch",
+    "lint": "eslint src --ext ts",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.20.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0",
+    "@vscode/test-cli": "^0.0.6"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.0",
+    "gray-matter": "^4.0.3",
+    "marked": "^12.0.0"
+  }
+}
