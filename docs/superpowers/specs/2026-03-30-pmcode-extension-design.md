@@ -543,12 +543,132 @@ Every configuration change creates a timestamped snapshot in `~/.pmcode/history/
 
 ---
 
+## Marketplace
+
+### Git-Based Plugin Registry
+
+Skills and connectors are distributed via a git repository that serves as a marketplace. The repo URL is configurable (default TBD). The repo contains a `plugin.json` manifest at its root describing all available items.
+
+**Marketplace repo structure:**
+```
+marketplace/
+├── plugin.json                # Manifest listing all skills and connectors
+├── skills/
+│   ├── idea-triage/
+│   │   └── SKILL.md
+│   ├── sprint-retro/
+│   │   └── SKILL.md
+│   └── ...
+└── connectors/
+    ├── slack/
+    │   └── connector.json
+    └── ...
+```
+
+**plugin.json format:**
+```json
+{
+  "version": "1.0",
+  "skills": [
+    {
+      "id": "idea-triage",
+      "name": "Idea Triage",
+      "description": "Evaluate and prioritize ideas",
+      "category": "planning",
+      "version": "1.0",
+      "path": "skills/idea-triage",
+      "connectors": ["jira", "aha", "monday"]
+    }
+  ],
+  "connectors": [
+    {
+      "id": "slack",
+      "name": "Slack",
+      "description": "Team messaging",
+      "version": "1.0",
+      "path": "connectors/slack",
+      "type": "mcp-server"
+    }
+  ]
+}
+```
+
+### Marketplace Lifecycle
+
+1. **Initial sync**: On first use or via "PM Code: Update Marketplace" command, the repo is `git clone --depth 1` to `~/.pmcode/marketplace/`.
+2. **Updates**: Subsequent syncs run `git pull --ff-only`. The sidebar shows last-updated date and an "Update" button.
+3. **Browse**: The marketplace panel shows all available skills and connectors in a grid with install buttons. Already-installed items show an "Installed" badge.
+4. **Install**: Copies the skill/connector directory from the local clone to `~/.pmcode/skills/` or `~/.pmcode/connectors/marketplace/`.
+5. **Repo configuration**: Users can point to a private/custom marketplace repo via `pmcode.marketplace.setRepo` command.
+
+### Marketplace State
+
+```
+~/.pmcode/
+├── marketplace/              # Git clone of the marketplace repo (gitignored from user's projects)
+│   ├── .git/
+│   ├── plugin.json
+│   ├── skills/
+│   └── connectors/
+└── marketplace-state.json    # Last-updated timestamp, repo URL
+```
+
+### Marketplace Commands
+
+| Command | Description |
+|---------|-------------|
+| `pmcode.marketplace.sync` | Clone or pull the marketplace repo |
+| `pmcode.marketplace.browse` | Open marketplace browse panel |
+| `pmcode.marketplace.installSkill {id}` | Install a skill from the marketplace |
+| `pmcode.marketplace.installConnector {id}` | Install a connector from the marketplace |
+| `pmcode.marketplace.setRepo {url}` | Configure the marketplace git repo URL |
+
+### Sidebar Integration
+
+The sidebar includes a Marketplace nav button (below Skills/Connectors/Guides) showing the total count of available items. Below it, the last-synced date and an "Update" button for one-click marketplace refresh.
+
+---
+
+## Installation
+
+PM Code is distributed as a `.vsix` file and installed via a cross-platform install script, since it is not published to the VS Code marketplace.
+
+### Install Script (install.sh / install.ps1)
+
+**Unix (macOS/Linux):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/caseyg/pmcode/main/install.sh | bash
+```
+
+**Windows (PowerShell):**
+```powershell
+iwr -useb https://raw.githubusercontent.com/caseyg/pmcode/main/install.ps1 | iex
+```
+
+**The install script:**
+1. Detects the operating system (macOS, Linux, Windows)
+2. Detects installed VS Code variants (VS Code, Cursor, Windsurf, VS Code Insiders)
+3. Downloads the latest `.vsix` release from GitHub
+4. Installs the extension via the `code --install-extension` CLI
+5. Creates the `~/.pmcode/` directory structure
+6. Verifies the installation succeeded
+
+### Cross-Platform Configuration Paths
+
+| Purpose | macOS | Linux | Windows |
+|---------|-------|-------|---------|
+| PM Code config | `~/.pmcode/` | `~/.pmcode/` | `%USERPROFILE%\.pmcode\` |
+| Roo MCP (global) | `~/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings/cline_mcp_settings.json` | `~/.config/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings/cline_mcp_settings.json` | `%APPDATA%\Code\User\globalStorage\rooveterinaryinc.roo-cline\settings\cline_mcp_settings.json` |
+| Roo MCP (project) | `<workspace>/.roo/mcp.json` | `<workspace>/.roo/mcp.json` | `<workspace>\.roo\mcp.json` |
+| VS Code extensions | `~/.vscode/extensions/` | `~/.vscode/extensions/` | `%USERPROFILE%\.vscode\extensions\` |
+
+---
+
 ## Missing Features for Future Versions
 
 ### V1.1
 - **Team sharing**: Export/import config bundles. `.pmcode/team-config.json` committed to repo for team defaults.
 - **More connectors**: Slack, Confluence, Figma, and user-submitted connectors.
-- **Connector marketplace**: Remote registry for community connectors.
 
 ### V2
 - **Multi-provider support**: Copilot, Cursor, Continue adapters.

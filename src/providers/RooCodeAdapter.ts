@@ -11,13 +11,19 @@ export class RooCodeAdapter implements ProviderAdapter {
 
   private static readonly EXTENSION_ID = 'rooveterinaryinc.roo-cline';
 
+  private static getGlobalStorageBase(): string {
+    switch (process.platform) {
+      case 'darwin':
+        return path.join(os.homedir(), 'Library', 'Application Support', 'Code', 'User', 'globalStorage');
+      case 'win32':
+        return path.join(process.env.APPDATA ?? path.join(os.homedir(), 'AppData', 'Roaming'), 'Code', 'User', 'globalStorage');
+      default: // linux
+        return path.join(os.homedir(), '.config', 'Code', 'User', 'globalStorage');
+    }
+  }
+
   private static readonly GLOBAL_MCP_PATH = path.join(
-    os.homedir(),
-    'Library',
-    'Application Support',
-    'Code',
-    'User',
-    'globalStorage',
+    RooCodeAdapter.getGlobalStorageBase(),
     'rooveterinaryinc.roo-cline',
     'settings',
     'cline_mcp_settings.json'
