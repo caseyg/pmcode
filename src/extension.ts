@@ -17,6 +17,8 @@ import { registerConnectorCommands } from './commands/connectors';
 import { registerSkillCommands } from './commands/skills';
 import { registerGuideCommands } from './commands/guides';
 import { registerSystemCommands } from './commands/system';
+import { registerMarketplaceCommands } from './commands/marketplace';
+import { MarketplaceRegistry } from './marketplace/MarketplaceRegistry';
 
 // ── Shared dependency bag passed to all command registration functions ──────
 
@@ -30,6 +32,7 @@ export interface ExtensionDeps {
   guideEngine: GuideEngine;
   sidebarProvider: SidebarProvider;
   panelManager: PanelManager;
+  marketplace: MarketplaceRegistry;
 }
 
 // ── Activation ─────────────────────────────────────────────────────────────
@@ -49,6 +52,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const connectorManager = new ConnectorManager(envManager, providerAdapter);
   const skillManager = new SkillManager(context);
   const guideEngine = new GuideEngine();
+  const marketplace = new MarketplaceRegistry();
 
   // 4. UI components
   const sidebarProvider = new SidebarProvider(context.extensionUri);
@@ -73,6 +77,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     guideEngine,
     sidebarProvider,
     panelManager,
+    marketplace,
   };
 
   // 6. Register all commands
@@ -82,6 +87,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   registerSkillCommands(context, deps);
   registerGuideCommands(context, deps);
   registerSystemCommands(context, deps);
+  registerMarketplaceCommands(context, deps);
 
   // 7. Background startup tasks (deferred, non-blocking)
   setTimeout(() => {
@@ -136,6 +142,14 @@ async function runBackgroundStartup(
     const connectors = await deps.connectorManager.getConnectors();
     const guides = deps.guideEngine.getGuides();
     deps.sidebarProvider.updateCounts(skills.length, connectors.length, guides.length);
+
+    // Update marketplace status in sidebar
+    try {
+      const mpStatus = await deps.marketplace.getStatus();
+      deps.sidebarProvider.updateMarketplaceStatus(mpStatus);
+    } catch {
+      // Marketplace not yet cloned — that's fine
+    }
   } catch (err) {
     console.warn('PM Code: Background startup error:', err);
   }

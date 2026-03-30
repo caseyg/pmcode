@@ -8,6 +8,13 @@ export interface SearchResult {
   icon: string;
 }
 
+export interface SidebarMarketplaceStatus {
+  available: boolean;
+  lastUpdated: string | null;
+  skillCount: number;
+  connectorCount: number;
+}
+
 /**
  * WebviewViewProvider for the PM Code sidebar.
  *
@@ -48,6 +55,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           this.handleOpenItem(message.category, message.id);
           break;
         case 'clearSearch':
+          break;
+        case 'marketplaceSync':
+          vscode.commands.executeCommand('pmcode.marketplace.sync');
+          break;
+        case 'marketplaceBrowse':
+          vscode.commands.executeCommand('pmcode.marketplace.browse');
           break;
       }
     });
@@ -93,6 +106,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       type: 'ftueProgress',
       completed,
       total,
+    });
+  }
+
+  /**
+   * Send marketplace status to the webview.
+   */
+  updateMarketplaceStatus(status: SidebarMarketplaceStatus): void {
+    this.view?.webview.postMessage({
+      type: 'updateMarketplace',
+      ...status,
     });
   }
 
@@ -186,6 +209,21 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           <span class="nav-label">Guides</span>
           <span class="nav-count" id="guidesCount"></span>
         </button>
+      </div>
+    </div>
+
+    <!-- Marketplace -->
+    <div id="marketplaceSection" style="margin-top:4px;">
+      <div class="nav-buttons">
+        <button class="nav-button" id="marketplaceBrowseBtn">
+          <span class="nav-icon">&#128722;</span>
+          <span class="nav-label">Marketplace</span>
+          <span class="nav-count" id="marketplaceCount"></span>
+        </button>
+      </div>
+      <div id="marketplaceStatus" style="padding:0 10px; font-size:0.85em; opacity:0.6; display:flex; align-items:center; gap:6px; margin-top:2px;">
+        <span id="marketplaceLastUpdated"></span>
+        <button id="marketplaceSyncBtn" style="background:none; border:none; color:var(--vscode-textLink-foreground); cursor:pointer; font-size:0.85em; font-family:inherit; padding:0;">Update</button>
       </div>
     </div>
 
@@ -331,6 +369,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       return div.innerHTML;
     }
 
+    // Marketplace buttons
+    document.getElementById('marketplaceBrowseBtn').addEventListener('click', function() {
+      vscode.postMessage({ type: 'marketplaceBrowse' });
+    });
+    document.getElementById('marketplaceSyncBtn').addEventListener('click', function() {
+      vscode.postMessage({ type: 'marketplaceSync' });
+    });
+
     // Handle messages from extension
     window.addEventListener('message', function(event) {
       var msg = event.data;
@@ -369,6 +415,18 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           searchInput.value = msg.query || '';
           if (msg.query) {
             searchInput.dispatchEvent(new Event('input'));
+          }
+          break;
+        case 'updateMarketplace':
+          var mpCount = document.getElementById('marketplaceCount');
+          var mpUpdated = document.getElementById('marketplaceLastUpdated');
+          var total = (msg.skillCount || 0) + (msg.connectorCount || 0);
+          mpCount.textContent = total > 0 ? String(total) : '';
+          if (msg.lastUpdated) {
+            var d = new Date(msg.lastUpdated);
+            mpUpdated.textContent = 'Updated ' + d.toLocaleDateString();
+          } else if (!msg.available) {
+            mpUpdated.textContent = 'Not synced yet';
           }
           break;
       }

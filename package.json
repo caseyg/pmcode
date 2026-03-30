@@ -117,7 +117,12 @@
       { "command": "pmcode.openRooSidebar", "title": "PM Code: Open Roo Code" },
       { "command": "pmcode.firstPrompt", "title": "PM Code: First Prompt" },
       { "command": "pmcode.connectorConfigured", "title": "PM Code: Connector Configured" },
-      { "command": "pmcode.firstPromptSent", "title": "PM Code: First Prompt Sent" }
+      { "command": "pmcode.firstPromptSent", "title": "PM Code: First Prompt Sent" },
+      { "command": "pmcode.marketplace.sync", "title": "PM Code: Update Marketplace" },
+      { "command": "pmcode.marketplace.browse", "title": "PM Code: Browse Marketplace" },
+      { "command": "pmcode.marketplace.installSkill", "title": "PM Code: Install Skill from Marketplace" },
+      { "command": "pmcode.marketplace.installConnector", "title": "PM Code: Install Connector from Marketplace" },
+      { "command": "pmcode.marketplace.setRepo", "title": "PM Code: Set Marketplace Repository" }
     ]
   },
   "scripts": {
