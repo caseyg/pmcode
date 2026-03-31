@@ -11,19 +11,48 @@ export const FTUE_STEPS = ['meetAI', 'connectTool', 'firstPrompt', 'explore'] as
 export type FtueStepId = (typeof FTUE_STEPS)[number];
 
 /**
+ * Map FTUE step IDs to the walkthrough completion commands.
+ * VS Code listens for these via completionEvents in package.json.
+ */
+const STEP_TO_WALKTHROUGH_COMMAND: Record<string, string> = {
+  meetAI: 'pmcode.openRooSidebar',
+  connectTool: 'pmcode.connectorConfigured',
+  firstPrompt: 'pmcode.firstPromptSent',
+  explore: 'pmcode.ftue.completeExplore',
+};
+
+/** Guard to prevent recursive sync when firing walkthrough commands. */
+let syncing = false;
+
+/**
  * Update all FTUE surfaces after a state change.
  */
 async function syncFtueState(deps: ExtensionDeps): Promise<void> {
-  const config = await deps.configManager.getConfig();
-  const count = config.ftue.completedSteps.length;
+  if (syncing) { return; }
+  syncing = true;
 
-  // Update sidebar progress bar
-  deps.sidebarProvider.updateFtueProgress(count, FTUE_STEPS.length);
+  try {
+    const config = await deps.configManager.getConfig();
+    const count = config.ftue.completedSteps.length;
 
-  // Refresh dashboard if it's open — close and re-open with fresh data
-  if (deps.panelManager.has('companion', 'dashboard')) {
-    deps.panelManager.closePanel('companion', 'dashboard');
-    void vscode.commands.executeCommand('pmcode.openDashboard');
+    // Update sidebar progress bar
+    deps.sidebarProvider.updateFtueProgress(count, FTUE_STEPS.length);
+
+    // Fire walkthrough completion commands so VS Code marks steps done
+    for (const stepId of config.ftue.completedSteps) {
+      const cmd = STEP_TO_WALKTHROUGH_COMMAND[stepId];
+      if (cmd) {
+        void vscode.commands.executeCommand(cmd);
+      }
+    }
+
+    // Refresh dashboard if it's open — close and re-open with fresh data
+    if (deps.panelManager.has('companion', 'dashboard')) {
+      deps.panelManager.closePanel('companion', 'dashboard');
+      void vscode.commands.executeCommand('pmcode.openDashboard');
+    }
+  } finally {
+    syncing = false;
   }
 }
 

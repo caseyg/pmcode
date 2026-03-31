@@ -51,7 +51,7 @@
               "markdown": "media/walkthrough/meet-ai.md"
             },
             "completionEvents": [
-              "onView:roocode.sidebar"
+              "onCommand:pmcode.openRooSidebar"
             ]
           },
           {
@@ -84,7 +84,7 @@
               "markdown": "media/walkthrough/ready.md"
             },
             "completionEvents": [
-              "onView:pmcode.dashboard"
+              "onCommand:pmcode.ftue.completeExplore"
             ]
           }
         ]
