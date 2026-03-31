@@ -58,6 +58,24 @@ export class PanelManager {
   }
 
   /**
+   * Update an existing panel's HTML without creating a new one.
+   * Returns true if the panel was found and updated.
+   */
+  updatePanel(
+    type: string,
+    id: string,
+    getHtml: (webview: vscode.Webview) => string
+  ): boolean {
+    const key = `${type}:${id}`;
+    const existing = this.panels.get(key);
+    if (existing) {
+      existing.webview.html = getHtml(existing.webview);
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Close and dispose a panel by type and id.
    */
   closePanel(type: string, id: string): void {

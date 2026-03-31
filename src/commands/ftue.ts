@@ -20,8 +20,9 @@ async function syncFtueState(deps: ExtensionDeps): Promise<void> {
   // Update sidebar progress bar
   deps.sidebarProvider.updateFtueProgress(count, FTUE_STEPS.length);
 
-  // Refresh dashboard if it's open — re-open it with fresh data
+  // Refresh dashboard if it's open — close and re-open with fresh data
   if (deps.panelManager.has('companion', 'dashboard')) {
+    deps.panelManager.closePanel('companion', 'dashboard');
     void vscode.commands.executeCommand('pmcode.openDashboard');
   }
 }
