@@ -11,4 +11,14 @@ export default defineConfig([
       timeout: 20000,
     },
   },
+  {
+    label: 'ui',
+    files: 'out/test/ui/**/*.test.js',
+    workspaceFolder: './test/fixtures',
+    launchArgs: ['--disable-extensions'],
+    mocha: {
+      ui: 'tdd',
+      timeout: 30000,
+    },
+  },
 ]);

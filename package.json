@@ -138,7 +138,7 @@
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "vitest run",
     "test:integration": "vscode-test",
-    "test:e2e": "extest setup-and-run 'out/test/ui/**/*.test.js'",
+    "test:e2e": "npm run compile:tests && vscode-test --label ui",
     "coverage": "c8 vitest run"
   },
   "devDependencies": {
@@ -153,8 +153,7 @@
     "glob": "^10.0.0",
     "mocha": "^10.0.0",
     "typescript": "^5.3.0",
-    "vitest": "^1.0.0",
-    "vscode-extension-tester": "^8.0.0"
+    "vitest": "^1.0.0"
   },
   "dependencies": {
     "dotenv": "^16.3.0",

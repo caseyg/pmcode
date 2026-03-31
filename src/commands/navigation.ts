@@ -13,8 +13,13 @@ export function registerNavigationCommands(
   context.subscriptions.push(
     vscode.commands.registerCommand('pmcode.openSkills', async () => {
       const skills = await deps.skillManager.getInstalledSkills();
-      deps.panelManager.openPanel('skills-list', 'list', 'Skills', () => {
+      const panel = deps.panelManager.openPanel('skills-list', 'list', 'Skills', () => {
         return getSkillsListHtml(skills);
+      });
+      panel.webview.onDidReceiveMessage((message) => {
+        if (message.type === 'openItem' && message.id) {
+          vscode.commands.executeCommand('pmcode.openSkill', message.id);
+        }
       });
     })
   );
@@ -23,8 +28,13 @@ export function registerNavigationCommands(
   context.subscriptions.push(
     vscode.commands.registerCommand('pmcode.openConnectors', async () => {
       const connectors = await deps.connectorManager.getConnectors();
-      deps.panelManager.openPanel('connectors-list', 'list', 'Connectors', () => {
+      const panel = deps.panelManager.openPanel('connectors-list', 'list', 'Connectors', () => {
         return getConnectorsListHtml(connectors);
+      });
+      panel.webview.onDidReceiveMessage((message) => {
+        if (message.type === 'openItem' && message.id) {
+          vscode.commands.executeCommand('pmcode.openConnector', message.id);
+        }
       });
     })
   );
@@ -33,8 +43,13 @@ export function registerNavigationCommands(
   context.subscriptions.push(
     vscode.commands.registerCommand('pmcode.openGuides', () => {
       const guides = deps.guideEngine.getGuides();
-      deps.panelManager.openPanel('guides-list', 'list', 'Guides', () => {
+      const panel = deps.panelManager.openPanel('guides-list', 'list', 'Guides', () => {
         return getGuidesListHtml(guides);
+      });
+      panel.webview.onDidReceiveMessage((message) => {
+        if (message.type === 'openItem' && message.id) {
+          vscode.commands.executeCommand('pmcode.openGuide', message.id);
+        }
       });
     })
   );
@@ -233,6 +248,14 @@ function wrapHtml(title: string, body: string): string {
 <body>
   <h1>${escapeHtml(title)}</h1>
   ${body}
+  <script>
+    var vscode = acquireVsCodeApi();
+    document.querySelectorAll('.list-item[data-id]').forEach(function(item) {
+      item.addEventListener('click', function() {
+        vscode.postMessage({ type: 'openItem', id: item.dataset.id });
+      });
+    });
+  </script>
 </body>
 </html>`;
 }
