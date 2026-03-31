@@ -82,6 +82,8 @@ export function registerConnectorCommands(
           const result = await deps.connectorManager.testConnection(id!);
           if (result.status === 'connected') {
             void vscode.window.showInformationMessage(`${id}: ${result.message}`);
+            // Signal FTUE completion (no-op if already completed)
+            void vscode.commands.executeCommand('pmcode.connectorConfigured');
           } else {
             void vscode.window.showWarningMessage(`${id}: ${result.message}`);
           }

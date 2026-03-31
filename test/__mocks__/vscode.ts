@@ -76,6 +76,14 @@ export const window = {
   registerWebviewViewProvider: vi.fn((_viewType: string, _provider: any) => {
     return { dispose: () => {} };
   }),
+  withProgress: vi.fn(async (_opts: any, cb: (progress: any) => Promise<any>) => {
+    return cb({ report: vi.fn() });
+  }),
+  createTerminal: vi.fn((_name?: string) => ({
+    show: vi.fn(),
+    sendText: vi.fn(),
+    dispose: vi.fn(),
+  })),
 };
 
 export const commands = {
@@ -105,6 +113,12 @@ export const EventEmitter = class {
   fire() {}
   dispose() {}
 };
+
+export enum ProgressLocation {
+  SourceControl = 1,
+  Window = 10,
+  Notification = 15,
+}
 
 export enum ConfigurationTarget {
   Global = 1,

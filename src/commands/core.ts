@@ -25,6 +25,8 @@ export function registerCoreCommands(
 
       try {
         await deps.providerAdapter.injectPrompt(text);
+        // Signal FTUE completion (no-op if already completed)
+        void vscode.commands.executeCommand('pmcode.firstPromptSent');
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         void vscode.window.showErrorMessage(`Failed to send prompt: ${message}`);
@@ -54,6 +56,8 @@ export function registerCoreCommands(
     vscode.commands.registerCommand('pmcode.openDashboard', async () => {
       const data = await gatherDashboardData(deps);
       CompanionPanel.show(context.extensionUri, deps.panelManager, data);
+      // Signal FTUE "explore" step complete (no-op if already completed)
+      void vscode.commands.executeCommand('pmcode.ftue.completeExplore');
     })
   );
 

@@ -86,6 +86,11 @@ suite('PM Code Commands — all registered', () => {
       'pmcode.marketplace.installSkill',
       'pmcode.marketplace.installConnector',
       'pmcode.marketplace.setRepo',
+      'pmcode.openRooSidebar',
+      'pmcode.connectorConfigured',
+      'pmcode.firstPrompt',
+      'pmcode.firstPromptSent',
+      'pmcode.ftue.completeExplore',
     ];
 
     for (const cmd of expected) {

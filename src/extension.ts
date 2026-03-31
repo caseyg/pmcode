@@ -18,6 +18,7 @@ import { registerSkillCommands } from './commands/skills';
 import { registerGuideCommands } from './commands/guides';
 import { registerSystemCommands } from './commands/system';
 import { registerMarketplaceCommands } from './commands/marketplace';
+import { registerFtueCommands, initFtueProgress } from './commands/ftue';
 import { MarketplaceRegistry } from './marketplace/MarketplaceRegistry';
 
 // ── Shared dependency bag passed to all command registration functions ──────
@@ -88,6 +89,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   registerGuideCommands(context, deps);
   registerSystemCommands(context, deps);
   registerMarketplaceCommands(context, deps);
+  registerFtueCommands(context, deps);
 
   // 7. Background startup tasks (deferred, non-blocking)
   setTimeout(() => {
@@ -132,6 +134,9 @@ async function runBackgroundStartup(
         missing.map((d) => d.id).join(', ')
       );
     }
+
+    // Send FTUE progress to sidebar
+    await initFtueProgress(deps);
 
     // Detect Roo Code and update sidebar status
     const rooDetected = await deps.providerAdapter.detect();
