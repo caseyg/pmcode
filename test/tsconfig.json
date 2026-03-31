@@ -12,5 +12,5 @@
     "resolveJsonModule": true,
     "sourceMap": true
   },
-  "include": ["integration/**/*.ts"]
+  "include": ["integration/**/*.ts", "ui/**/*.ts"]
 }

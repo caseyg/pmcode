@@ -4,6 +4,10 @@
   "description": "Helps non-technical users onboard to AI IDEs, manage Agent Skills and Connectors, and follow in-app guides.",
   "version": "0.1.0",
   "publisher": "pmcode",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/caseyg/pmcode.git"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
