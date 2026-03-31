@@ -58,7 +58,12 @@ export function registerNavigationCommands(
   context.subscriptions.push(
     vscode.commands.registerCommand('pmcode.openSkill', async (id?: string) => {
       if (!id) {
-        id = await vscode.window.showInputBox({ prompt: 'Enter skill id' });
+        const skills = await deps.skillManager.getInstalledSkills();
+        const pick = await vscode.window.showQuickPick(
+          skills.map((s) => ({ label: s.name, description: s.id, id: s.id })),
+          { placeHolder: 'Select a skill' }
+        );
+        id = pick?.id;
       }
       if (!id) {
         return;
@@ -78,7 +83,12 @@ export function registerNavigationCommands(
   context.subscriptions.push(
     vscode.commands.registerCommand('pmcode.openConnector', async (id?: string) => {
       if (!id) {
-        id = await vscode.window.showInputBox({ prompt: 'Enter connector id' });
+        const connectors = await deps.connectorManager.getConnectors();
+        const pick = await vscode.window.showQuickPick(
+          connectors.map((c) => ({ label: c.name, description: c.status, id: c.id })),
+          { placeHolder: 'Select a connector' }
+        );
+        id = pick?.id;
       }
       if (!id) {
         return;
@@ -98,7 +108,12 @@ export function registerNavigationCommands(
   context.subscriptions.push(
     vscode.commands.registerCommand('pmcode.openGuide', async (id?: string) => {
       if (!id) {
-        id = await vscode.window.showInputBox({ prompt: 'Enter guide id' });
+        const guides = deps.guideEngine.getGuides();
+        const pick = await vscode.window.showQuickPick(
+          guides.map((g) => ({ label: g.title, description: `${g.type} · ~${g.estimatedMinutes} min`, id: g.id })),
+          { placeHolder: 'Select a guide' }
+        );
+        id = pick?.id;
       }
       if (!id) {
         return;

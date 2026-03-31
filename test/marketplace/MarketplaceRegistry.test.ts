@@ -10,10 +10,7 @@ vi.mock('os', async () => {
 
 const mockExecFn = vi.fn();
 vi.mock('child_process', () => ({
-  exec: (...args: any[]) => {
-    // This gets called by promisify(exec), so we need the raw exec
-    // But since we mock promisify to return mockExecFn, this is unused
-  },
+  exec: (...args: any[]) => {},
 }));
 vi.mock('util', async () => {
   const actual = await vi.importActual<typeof import('util')>('util');
@@ -25,38 +22,27 @@ vi.mock('util', async () => {
 
 import { MarketplaceRegistry } from '../../src/marketplace/MarketplaceRegistry';
 
-const MARKETPLACE_DIR = path.join('/mock/home', '.pmcode', 'marketplace');
-
-const sampleManifest = {
-  version: '1.0',
-  skills: [
+const sampleCatalog = {
+  name: 'knowledge-work-plugins',
+  owner: { name: 'Anthropic' },
+  metadata: { version: '1.0.0' },
+  plugins: [
     {
-      id: 'idea-triage',
-      name: 'Idea Triage',
-      description: 'Evaluate and prioritize ideas',
-      category: 'planning',
-      version: '1.0',
-      path: 'skills/idea-triage',
-      connectors: ['jira'],
+      name: 'product-management',
+      source: './product-management',
+      description: 'Write feature specs, plan roadmaps, and synthesize user research.',
+      category: 'productivity',
     },
     {
-      id: 'sprint-retro',
-      name: 'Sprint Retro',
-      description: 'Run a sprint retrospective',
-      category: 'agile',
-      version: '1.0',
-      path: 'skills/sprint-retro',
-      connectors: ['jira', 'github'],
+      name: 'sales',
+      source: './sales',
+      description: 'Prospect, craft outreach, and build deal strategy.',
     },
-  ],
-  connectors: [
     {
-      id: 'slack',
-      name: 'Slack',
-      description: 'Team messaging',
-      version: '1.0',
-      path: 'connectors/slack',
-      type: 'mcp-server',
+      name: 'external-plugin',
+      source: { source: 'github', repo: 'org/plugin' },
+      description: 'An external plugin',
+      version: '2.0.0',
     },
   ],
 };
@@ -77,7 +63,7 @@ describe('MarketplaceRegistry', () => {
 
     it('uses default repo URL when none provided', () => {
       const r = new MarketplaceRegistry();
-      expect(r.getRepoUrl()).toContain('marketplace.git');
+      expect(r.getRepoUrl()).toContain('knowledge-work-plugins');
     });
   });
 
@@ -122,7 +108,7 @@ describe('MarketplaceRegistry', () => {
       expect(updated).toBe(true);
       expect(mockExecFn).toHaveBeenCalledWith(
         'git pull --ff-only',
-        expect.objectContaining({ cwd: MARKETPLACE_DIR })
+        expect.objectContaining({ cwd: expect.stringContaining('marketplace') })
       );
     });
 
@@ -138,116 +124,147 @@ describe('MarketplaceRegistry', () => {
     });
   });
 
-  describe('getManifest()', () => {
-    it('parses plugin.json from local clone', async () => {
-      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleManifest));
+  describe('getCatalog()', () => {
+    it('parses marketplace.json from .claude-plugin/', async () => {
+      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleCatalog));
 
-      const manifest = await registry.getManifest();
+      const catalog = await registry.getCatalog();
 
-      expect(manifest.version).toBe('1.0');
-      expect(manifest.skills).toHaveLength(2);
-      expect(manifest.connectors).toHaveLength(1);
+      expect(catalog.name).toBe('knowledge-work-plugins');
+      expect(catalog.owner.name).toBe('Anthropic');
+      expect(catalog.plugins).toHaveLength(3);
     });
 
-    it('caches manifest after first read', async () => {
-      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleManifest));
+    it('caches catalog after first read', async () => {
+      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleCatalog));
 
-      await registry.getManifest();
-      await registry.getManifest();
+      await registry.getCatalog();
+      await registry.getCatalog();
 
       expect(fs.readFile).toHaveBeenCalledTimes(1);
     });
 
-    it('handles missing skills/connectors arrays', async () => {
-      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify({ version: '1.0' }));
+    it('handles missing plugins array', async () => {
+      vi.mocked(fs.readFile).mockResolvedValue(
+        JSON.stringify({ name: 'test', owner: { name: 'Test' } })
+      );
+
+      const catalog = await registry.getCatalog();
+      expect(catalog.plugins).toEqual([]);
+    });
+  });
+
+  describe('getPlugins()', () => {
+    it('returns all plugins from catalog', async () => {
+      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleCatalog));
+
+      const plugins = await registry.getPlugins();
+
+      expect(plugins).toHaveLength(3);
+      expect(plugins[0].name).toBe('product-management');
+      expect(plugins[1].name).toBe('sales');
+    });
+  });
+
+  describe('getPlugin()', () => {
+    it('returns a plugin by name', async () => {
+      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleCatalog));
+
+      const plugin = await registry.getPlugin('product-management');
+
+      expect(plugin).toBeDefined();
+      expect(plugin!.name).toBe('product-management');
+      expect(plugin!.description).toContain('feature specs');
+    });
+
+    it('returns undefined for unknown plugin', async () => {
+      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleCatalog));
+
+      const plugin = await registry.getPlugin('nonexistent');
+      expect(plugin).toBeUndefined();
+    });
+  });
+
+  describe('getManifest() — legacy compat', () => {
+    it('builds manifest from marketplace catalog', async () => {
+      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleCatalog));
 
       const manifest = await registry.getManifest();
 
-      expect(manifest.skills).toEqual([]);
+      expect(manifest.version).toBe('1.0.0');
+      expect(manifest.skills).toHaveLength(3);
+      expect(manifest.skills[0].id).toBe('product-management');
+      expect(manifest.skills[0].name).toBe('Product Management');
       expect(manifest.connectors).toEqual([]);
     });
-  });
 
-  describe('getAvailableSkills()', () => {
-    it('returns skills from manifest', async () => {
-      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleManifest));
+    it('caches manifest', async () => {
+      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleCatalog));
 
-      const skills = await registry.getAvailableSkills();
+      await registry.getManifest();
+      await registry.getManifest();
 
-      expect(skills).toHaveLength(2);
-      expect(skills[0].id).toBe('idea-triage');
-      expect(skills[1].id).toBe('sprint-retro');
+      // readFile called once for catalog, manifest is derived
+      expect(fs.readFile).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('getAvailableConnectors()', () => {
-    it('returns connectors from manifest', async () => {
-      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleManifest));
-
-      const connectors = await registry.getAvailableConnectors();
-
-      expect(connectors).toHaveLength(1);
-      expect(connectors[0].id).toBe('slack');
-    });
-  });
-
-  describe('installSkill()', () => {
-    it('copies skill directory to ~/.pmcode/skills/', async () => {
-      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleManifest));
+  describe('installPlugin()', () => {
+    it('copies relative-source plugin to ~/.pmcode/plugins/', async () => {
+      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleCatalog));
       vi.mocked(fs.mkdir).mockResolvedValue(undefined);
       vi.mocked(fs.readdir).mockResolvedValue([
         { name: 'SKILL.md', isDirectory: () => false },
       ] as any);
       vi.mocked(fs.copyFile).mockResolvedValue(undefined);
 
-      const targetPath = await registry.installSkill('idea-triage');
+      const targetPath = await registry.installPlugin('product-management');
 
-      expect(targetPath).toBe(path.join('/mock/home', '.pmcode', 'skills', 'idea-triage'));
+      expect(targetPath).toBe(path.join('/mock/home', '.pmcode', 'plugins', 'product-management'));
       expect(fs.mkdir).toHaveBeenCalled();
       expect(fs.copyFile).toHaveBeenCalled();
     });
 
-    it('throws for unknown skill id', async () => {
-      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleManifest));
+    it('throws for non-local source plugin', async () => {
+      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleCatalog));
 
-      await expect(registry.installSkill('nonexistent')).rejects.toThrow(
-        'Skill "nonexistent" not found in marketplace'
+      await expect(registry.installPlugin('external-plugin')).rejects.toThrow(
+        'non-local source'
+      );
+    });
+
+    it('throws for unknown plugin', async () => {
+      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleCatalog));
+
+      await expect(registry.installPlugin('nonexistent')).rejects.toThrow(
+        'not found in marketplace'
       );
     });
   });
 
-  describe('installConnector()', () => {
-    it('copies connector directory', async () => {
-      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleManifest));
+  describe('installSkill() — legacy compat', () => {
+    it('delegates to installPlugin', async () => {
+      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleCatalog));
       vi.mocked(fs.mkdir).mockResolvedValue(undefined);
       vi.mocked(fs.readdir).mockResolvedValue([
-        { name: 'connector.json', isDirectory: () => false },
+        { name: 'SKILL.md', isDirectory: () => false },
       ] as any);
       vi.mocked(fs.copyFile).mockResolvedValue(undefined);
 
-      const targetPath = await registry.installConnector('slack');
+      const targetPath = await registry.installSkill('sales');
 
-      expect(targetPath).toContain('slack');
-      expect(fs.copyFile).toHaveBeenCalled();
-    });
-
-    it('throws for unknown connector id', async () => {
-      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleManifest));
-
-      await expect(registry.installConnector('nonexistent')).rejects.toThrow(
-        'Connector "nonexistent" not found in marketplace'
-      );
+      expect(targetPath).toContain('sales');
     });
   });
 
   describe('isSkillInstalled()', () => {
-    it('returns true when SKILL.md exists in ~/.pmcode/skills/', async () => {
+    it('returns true when SKILL.md exists', async () => {
       vi.mocked(fs.access).mockResolvedValue(undefined);
 
       expect(await registry.isSkillInstalled('idea-triage')).toBe(true);
     });
 
-    it('returns false when SKILL.md does not exist', async () => {
+    it('returns false when neither SKILL.md nor plugin.json exists', async () => {
       vi.mocked(fs.access).mockRejectedValue(new Error('ENOENT'));
 
       expect(await registry.isSkillInstalled('idea-triage')).toBe(false);
@@ -262,38 +279,35 @@ describe('MarketplaceRegistry', () => {
 
       expect(status.available).toBe(false);
       expect(status.skillCount).toBe(0);
-      expect(status.connectorCount).toBe(0);
     });
 
-    it('returns counts when repo is cloned', async () => {
-      // access for .git check
+    it('returns plugin count when repo is cloned', async () => {
       vi.mocked(fs.access).mockResolvedValue(undefined);
-      // readFile for state and manifest
       vi.mocked(fs.readFile)
         .mockResolvedValueOnce(JSON.stringify({ lastUpdated: '2026-03-30T10:00:00Z' }))
-        .mockResolvedValueOnce(JSON.stringify(sampleManifest));
+        .mockResolvedValueOnce(JSON.stringify(sampleCatalog));
 
       const status = await registry.getStatus();
 
       expect(status.available).toBe(true);
-      expect(status.skillCount).toBe(2);
-      expect(status.connectorCount).toBe(1);
+      expect(status.skillCount).toBe(3);
       expect(status.lastUpdated).toBe('2026-03-30T10:00:00Z');
     });
   });
 
   describe('setRepoUrl()', () => {
     it('updates repo URL and clears cache', async () => {
-      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleManifest));
-      await registry.getManifest(); // populate cache
+      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(sampleCatalog));
+      await registry.getCatalog(); // populate cache
 
       registry.setRepoUrl('https://github.com/other/repo.git');
 
       expect(registry.getRepoUrl()).toBe('https://github.com/other/repo.git');
-      // Next getManifest should re-read
-      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify({ ...sampleManifest, version: '2.0' }));
-      const manifest = await registry.getManifest();
-      expect(manifest.version).toBe('2.0');
+      // Next getCatalog should re-read
+      const newCatalog = { ...sampleCatalog, name: 'other' };
+      vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(newCatalog));
+      const catalog = await registry.getCatalog();
+      expect(catalog.name).toBe('other');
     });
   });
 });

@@ -7,21 +7,57 @@ import { promisify } from 'util';
 // ── Types ──────────────────────────────────────────────────────────────────
 
 /**
- * Marketplace plugin manifest (plugin.json at repo root).
+ * marketplace.json — the Claude Code plugin marketplace catalog format.
+ * Lives at `.claude-plugin/marketplace.json` in a marketplace repo.
  */
-export interface PluginManifest {
-  version: string;
-  skills: MarketplaceSkillEntry[];
-  connectors: MarketplaceConnectorEntry[];
+export interface MarketplaceCatalog {
+  name: string;
+  owner: { name: string; email?: string };
+  metadata?: {
+    description?: string;
+    version?: string;
+    pluginRoot?: string;
+  };
+  plugins: MarketplacePluginEntry[];
 }
 
+/**
+ * A single plugin entry in marketplace.json.
+ */
+export interface MarketplacePluginEntry {
+  name: string;
+  source: string | PluginSource;
+  description?: string;
+  version?: string;
+  author?: { name: string; email?: string };
+  category?: string;
+  tags?: string[];
+  homepage?: string;
+}
+
+/**
+ * Structured plugin source (github, url, git-subdir, npm).
+ */
+export interface PluginSource {
+  source: 'github' | 'url' | 'git-subdir' | 'npm';
+  repo?: string;
+  url?: string;
+  path?: string;
+  ref?: string;
+  sha?: string;
+  package?: string;
+  version?: string;
+  registry?: string;
+}
+
+// Keep backward-compat aliases for code that references these
 export interface MarketplaceSkillEntry {
   id: string;
   name: string;
   description: string;
   category: string;
   version: string;
-  path: string; // relative path within the repo (e.g. "skills/idea-triage")
+  path: string;
   connectors?: string[];
 }
 
@@ -30,8 +66,15 @@ export interface MarketplaceConnectorEntry {
   name: string;
   description: string;
   version: string;
-  path: string; // relative path within the repo
+  path: string;
   type: 'mcp-server' | 'cli-tool' | 'rest-api';
+}
+
+// Legacy manifest shape — built from marketplace.json for backward compat
+export interface PluginManifest {
+  version: string;
+  skills: MarketplaceSkillEntry[];
+  connectors: MarketplaceConnectorEntry[];
 }
 
 export interface MarketplaceStatus {
@@ -46,21 +89,23 @@ export interface MarketplaceStatus {
 // ── MarketplaceRegistry ───────────────────────────────────────────────────
 
 /**
- * Manages a local clone of the marketplace git repo, reads its plugin
- * manifest, and provides install/update operations for skills and connectors.
+ * Manages a local clone of a marketplace git repo, reads its
+ * `.claude-plugin/marketplace.json` catalog, and provides plugin
+ * discovery and install operations.
  *
- * The repo is cloned to ~/.pmcode/marketplace/. Updates are git pull.
- * The repo URL is configurable; defaults to a placeholder until the real
- * repo is set up.
+ * Supports multiple marketplace registries. Each is cloned to
+ * `~/.pmcode/marketplaces/<name>/`.
  */
 export class MarketplaceRegistry {
-  private static readonly MARKETPLACE_DIR = path.join(os.homedir(), '.pmcode', 'marketplace');
-  private static readonly MANIFEST_FILE = 'plugin.json';
+  private static readonly MARKETPLACES_DIR = path.join(os.homedir(), '.pmcode', 'marketplaces');
+  // Legacy single-marketplace dir for backward compat
+  private static readonly LEGACY_DIR = path.join(os.homedir(), '.pmcode', 'marketplace');
   private static readonly STATE_FILE = path.join(os.homedir(), '.pmcode', 'marketplace-state.json');
 
-  private static readonly DEFAULT_REPO_URL = 'https://github.com/pmcode-tools/marketplace.git';
+  private static readonly DEFAULT_REPO_URL = 'https://github.com/anthropics/knowledge-work-plugins.git';
 
   private repoUrl: string;
+  private cachedCatalog: MarketplaceCatalog | null = null;
   private cachedManifest: PluginManifest | null = null;
 
   constructor(repoUrl?: string) {
@@ -68,10 +113,19 @@ export class MarketplaceRegistry {
   }
 
   /**
-   * The local directory where the marketplace repo is cloned.
+   * The local directory where this marketplace repo is cloned.
    */
   get localPath(): string {
-    return MarketplaceRegistry.MARKETPLACE_DIR;
+    return this.getMarketplaceDir();
+  }
+
+  private getMarketplaceDir(): string {
+    // Derive directory name from repo URL
+    const name = this.repoUrl
+      .replace(/\.git$/, '')
+      .split('/')
+      .pop() || 'default';
+    return path.join(MarketplaceRegistry.MARKETPLACES_DIR, name);
   }
 
   // ── Sync ──────────────────────────────────────────────────────────────
@@ -80,16 +134,18 @@ export class MarketplaceRegistry {
    * Clone or pull the marketplace repo. Returns true if new content was fetched.
    */
   async sync(): Promise<boolean> {
+    const dir = this.getMarketplaceDir();
     const exists = await this.isCloned();
 
     if (!exists) {
-      await fs.mkdir(path.dirname(MarketplaceRegistry.MARKETPLACE_DIR), { recursive: true });
+      await fs.mkdir(path.dirname(dir), { recursive: true });
       const execAsync = promisify(childProcess.exec);
       await execAsync(
-        `git clone --depth 1 "${this.repoUrl}" "${MarketplaceRegistry.MARKETPLACE_DIR}"`,
+        `git clone --depth 1 "${this.repoUrl}" "${dir}"`,
         { timeout: 60_000 }
       );
       await this.saveState();
+      this.cachedCatalog = null;
       this.cachedManifest = null;
       return true;
     }
@@ -97,12 +153,13 @@ export class MarketplaceRegistry {
     // Pull latest
     const execAsync = promisify(childProcess.exec);
     const { stdout } = await execAsync('git pull --ff-only', {
-      cwd: MarketplaceRegistry.MARKETPLACE_DIR,
+      cwd: dir,
       timeout: 30_000,
     });
 
     const updated = !stdout.includes('Already up to date');
     if (updated) {
+      this.cachedCatalog = null;
       this.cachedManifest = null;
     }
     await this.saveState();
@@ -114,37 +171,92 @@ export class MarketplaceRegistry {
    */
   async isCloned(): Promise<boolean> {
     try {
-      await fs.access(path.join(MarketplaceRegistry.MARKETPLACE_DIR, '.git'));
+      await fs.access(path.join(this.getMarketplaceDir(), '.git'));
       return true;
     } catch {
       return false;
     }
   }
 
-  // ── Manifest ──────────────────────────────────────────────────────────
+  // ── Catalog ───────────────────────────────────────────────────────────
 
   /**
-   * Read and parse the plugin manifest from the local clone.
+   * Read and parse the marketplace catalog (`.claude-plugin/marketplace.json`).
+   */
+  async getCatalog(): Promise<MarketplaceCatalog> {
+    if (this.cachedCatalog) {
+      return this.cachedCatalog;
+    }
+
+    const catalogPath = path.join(
+      this.getMarketplaceDir(),
+      '.claude-plugin',
+      'marketplace.json'
+    );
+    const raw = await fs.readFile(catalogPath, 'utf-8');
+    const parsed = JSON.parse(raw) as MarketplaceCatalog;
+
+    if (!parsed.plugins) { parsed.plugins = []; }
+
+    this.cachedCatalog = parsed;
+    return parsed;
+  }
+
+  /**
+   * List all plugins in this marketplace.
+   */
+  async getPlugins(): Promise<MarketplacePluginEntry[]> {
+    const catalog = await this.getCatalog();
+    return catalog.plugins;
+  }
+
+  /**
+   * Get a single plugin entry by name.
+   */
+  async getPlugin(name: string): Promise<MarketplacePluginEntry | undefined> {
+    const catalog = await this.getCatalog();
+    return catalog.plugins.find(p => p.name === name);
+  }
+
+  // ── Legacy manifest interface ─────────────────────────────────────────
+
+  /**
+   * Build a PluginManifest from the marketplace catalog.
+   * Maps plugin entries to the legacy skills/connectors format for
+   * backward compatibility with existing panels and commands.
    */
   async getManifest(): Promise<PluginManifest> {
     if (this.cachedManifest) {
       return this.cachedManifest;
     }
 
-    const manifestPath = path.join(MarketplaceRegistry.MARKETPLACE_DIR, MarketplaceRegistry.MANIFEST_FILE);
-    const raw = await fs.readFile(manifestPath, 'utf-8');
-    const parsed = JSON.parse(raw) as PluginManifest;
+    const catalog = await this.getCatalog();
+    const skills: MarketplaceSkillEntry[] = [];
 
-    // Validate basic structure
-    if (!parsed.skills) { parsed.skills = []; }
-    if (!parsed.connectors) { parsed.connectors = []; }
+    for (const plugin of catalog.plugins) {
+      const sourcePath = typeof plugin.source === 'string' ? plugin.source : '';
+      skills.push({
+        id: plugin.name,
+        name: plugin.name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+        description: plugin.description || '',
+        category: plugin.category || 'general',
+        version: plugin.version || '1.0.0',
+        path: sourcePath,
+      });
+    }
 
-    this.cachedManifest = parsed;
-    return parsed;
+    const manifest: PluginManifest = {
+      version: catalog.metadata?.version || '1.0.0',
+      skills,
+      connectors: [],
+    };
+
+    this.cachedManifest = manifest;
+    return manifest;
   }
 
   /**
-   * List available skills from the marketplace.
+   * List available skills (plugins) from the marketplace.
    */
   async getAvailableSkills(): Promise<MarketplaceSkillEntry[]> {
     const manifest = await this.getManifest();
@@ -162,26 +274,41 @@ export class MarketplaceRegistry {
   // ── Install ───────────────────────────────────────────────────────────
 
   /**
-   * Install a skill from the marketplace to ~/.pmcode/skills/.
-   * Copies the skill directory from the local clone.
+   * Install a plugin from the marketplace.
+   * For relative-source plugins, copies from the local clone.
    */
-  async installSkill(skillId: string): Promise<string> {
-    const manifest = await this.getManifest();
-    const entry = manifest.skills.find(s => s.id === skillId);
+  async installPlugin(pluginName: string): Promise<string> {
+    const catalog = await this.getCatalog();
+    const entry = catalog.plugins.find(p => p.name === pluginName);
     if (!entry) {
-      throw new Error(`Skill "${skillId}" not found in marketplace`);
+      throw new Error(`Plugin "${pluginName}" not found in marketplace`);
     }
 
-    const sourcePath = path.join(MarketplaceRegistry.MARKETPLACE_DIR, entry.path);
-    const targetPath = path.join(os.homedir(), '.pmcode', 'skills', skillId);
+    const source = entry.source;
+    if (typeof source === 'string' && source.startsWith('./')) {
+      // Relative path — copy from local clone
+      const sourcePath = path.join(this.getMarketplaceDir(), source);
+      const targetPath = path.join(os.homedir(), '.pmcode', 'plugins', pluginName);
+      await this.copyDirectory(sourcePath, targetPath);
+      return targetPath;
+    }
 
-    await this.copyDirectory(sourcePath, targetPath);
-    return targetPath;
+    throw new Error(
+      `Plugin "${pluginName}" uses a non-local source. ` +
+      `Only relative-path sources (./...) are supported for direct install.`
+    );
   }
 
   /**
-   * Install a connector definition from the marketplace to ~/.pmcode/connectors/.
-   * Copies the connector directory from the local clone.
+   * Install a skill from the marketplace to ~/.pmcode/skills/.
+   * Backward-compat wrapper around installPlugin.
+   */
+  async installSkill(skillId: string): Promise<string> {
+    return this.installPlugin(skillId);
+  }
+
+  /**
+   * Install a connector from the marketplace.
    */
   async installConnector(connectorId: string): Promise<string> {
     const manifest = await this.getManifest();
@@ -190,9 +317,8 @@ export class MarketplaceRegistry {
       throw new Error(`Connector "${connectorId}" not found in marketplace`);
     }
 
-    const sourcePath = path.join(MarketplaceRegistry.MARKETPLACE_DIR, entry.path);
+    const sourcePath = path.join(this.getMarketplaceDir(), entry.path);
     const targetPath = path.join(os.homedir(), '.pmcode', 'connectors', 'marketplace', connectorId);
-
     await this.copyDirectory(sourcePath, targetPath);
     return targetPath;
   }
@@ -200,7 +326,7 @@ export class MarketplaceRegistry {
   // ── Status ────────────────────────────────────────────────────────────
 
   /**
-   * Get the current marketplace status (availability, last update, counts).
+   * Get the current marketplace status.
    */
   async getStatus(): Promise<MarketplaceStatus> {
     const cloned = await this.isCloned();
@@ -219,14 +345,14 @@ export class MarketplaceRegistry {
     const state = await this.loadState();
 
     try {
-      const manifest = await this.getManifest();
+      const catalog = await this.getCatalog();
       return {
         available: true,
         lastUpdated: state.lastUpdated,
         repoUrl: this.repoUrl,
-        manifestVersion: manifest.version,
-        skillCount: manifest.skills.length,
-        connectorCount: manifest.connectors.length,
+        manifestVersion: catalog.metadata?.version || null,
+        skillCount: catalog.plugins.length,
+        connectorCount: 0,
       };
     } catch {
       return {
@@ -241,16 +367,23 @@ export class MarketplaceRegistry {
   }
 
   /**
-   * Check if a skill from the marketplace is already installed locally.
+   * Check if a plugin is already installed locally.
    */
   async isSkillInstalled(skillId: string): Promise<boolean> {
-    const targetPath = path.join(os.homedir(), '.pmcode', 'skills', skillId, 'SKILL.md');
-    try {
-      await fs.access(targetPath);
-      return true;
-    } catch {
-      return false;
+    // Check both legacy skills dir and new plugins dir
+    const paths = [
+      path.join(os.homedir(), '.pmcode', 'skills', skillId, 'SKILL.md'),
+      path.join(os.homedir(), '.pmcode', 'plugins', skillId, '.claude-plugin', 'plugin.json'),
+    ];
+    for (const p of paths) {
+      try {
+        await fs.access(p);
+        return true;
+      } catch {
+        // continue
+      }
     }
+    return false;
   }
 
   /**
@@ -261,10 +394,11 @@ export class MarketplaceRegistry {
   }
 
   /**
-   * Set a new marketplace repo URL. Clears cached manifest.
+   * Set a new marketplace repo URL. Clears cached data.
    */
   setRepoUrl(url: string): void {
     this.repoUrl = url;
+    this.cachedCatalog = null;
     this.cachedManifest = null;
   }
 

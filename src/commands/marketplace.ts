@@ -39,7 +39,25 @@ export function registerMarketplaceCommands(
         );
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        void vscode.window.showErrorMessage(`Marketplace sync failed: ${message}`);
+        if (message.includes('could not read Username') || message.includes('Authentication failed') || message.includes('Permission denied')) {
+          const action = await vscode.window.showErrorMessage(
+            'Git authentication is not configured. Set up GitHub CLI auth to access the marketplace.',
+            'Run gh auth login',
+            'Open Terminal',
+            'Cancel'
+          );
+          if (action === 'Run gh auth login') {
+            const terminal = vscode.window.createTerminal('PM Code: Git Auth');
+            terminal.show();
+            terminal.sendText('gh auth login');
+          } else if (action === 'Open Terminal') {
+            const terminal = vscode.window.createTerminal('PM Code: Git Auth');
+            terminal.show();
+            terminal.sendText('echo "Run: gh auth login  — or configure git credentials for ' + deps.marketplace.getRepoUrl() + '"');
+          }
+        } else {
+          void vscode.window.showErrorMessage(`Marketplace sync failed: ${message}`);
+        }
       }
     })
   );
