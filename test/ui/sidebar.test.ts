@@ -290,6 +290,112 @@ suite('PM Code — Rapid panel switching (stress)', () => {
   });
 });
 
+suite('PM Code — FTUE state sync', () => {
+  // Helper: read the config file to verify persisted state
+  async function readFtueConfig(): Promise<{ completed: boolean; completedSteps: string[]; phase: string }> {
+    const configPath = path.join(process.env.HOME || '', '.pmcode', 'config.json');
+    try {
+      const raw = fs.readFileSync(configPath, 'utf-8');
+      const config = JSON.parse(raw);
+      return config.ftue || { completed: false, completedSteps: [], phase: 'companion' };
+    } catch {
+      return { completed: false, completedSteps: [], phase: 'companion' };
+    }
+  }
+
+  // Reset FTUE state before tests
+  suiteSetup(async function () {
+    this.timeout(10000);
+    // Reset by toggling off any completed steps
+    const ftue = await readFtueConfig();
+    for (const step of ftue.completedSteps) {
+      await execSafe('pmcode.ftue.toggle', step);
+    }
+    // Verify clean slate
+    const clean = await readFtueConfig();
+    assert.strictEqual(clean.completedSteps.length, 0, 'FTUE should be reset before tests');
+  });
+
+  test('completing meetAI via openRooSidebar persists to config', async function () {
+    this.timeout(5000);
+    await execSafe('pmcode.openRooSidebar');
+
+    const ftue = await readFtueConfig();
+    assert.ok(ftue.completedSteps.includes('meetAI'), 'meetAI should be in completedSteps');
+  });
+
+  test('completing connectTool via connectorConfigured persists to config', async function () {
+    this.timeout(5000);
+    await execSafe('pmcode.connectorConfigured');
+
+    const ftue = await readFtueConfig();
+    assert.ok(ftue.completedSteps.includes('connectTool'), 'connectTool should be in completedSteps');
+  });
+
+  test('completing firstPrompt via firstPromptSent persists to config', async function () {
+    this.timeout(5000);
+    await execSafe('pmcode.firstPromptSent');
+
+    const ftue = await readFtueConfig();
+    assert.ok(ftue.completedSteps.includes('firstPrompt'), 'firstPrompt should be in completedSteps');
+  });
+
+  test('completing explore via ftue.completeExplore persists to config', async function () {
+    this.timeout(5000);
+    await execSafe('pmcode.ftue.completeExplore');
+
+    const ftue = await readFtueConfig();
+    assert.ok(ftue.completedSteps.includes('explore'), 'explore should be in completedSteps');
+  });
+
+  test('all 4 steps completed → ftue.completed is true', async function () {
+    this.timeout(5000);
+    const ftue = await readFtueConfig();
+    assert.strictEqual(ftue.completedSteps.length, 4, 'All 4 steps should be completed');
+    assert.strictEqual(ftue.completed, true, 'ftue.completed should be true');
+    assert.strictEqual(ftue.phase, 'command-center', 'phase should be command-center');
+  });
+
+  test('toggling a step off persists to config', async function () {
+    this.timeout(5000);
+    await execSafe('pmcode.ftue.toggle', 'firstPrompt');
+
+    const ftue = await readFtueConfig();
+    assert.ok(!ftue.completedSteps.includes('firstPrompt'), 'firstPrompt should be removed');
+    assert.strictEqual(ftue.completed, false, 'ftue.completed should be false');
+    assert.strictEqual(ftue.phase, 'companion', 'phase should be companion');
+    assert.strictEqual(ftue.completedSteps.length, 3, 'Should have 3 steps');
+  });
+
+  test('toggling a step back on persists to config', async function () {
+    this.timeout(5000);
+    await execSafe('pmcode.ftue.toggle', 'firstPrompt');
+
+    const ftue = await readFtueConfig();
+    assert.ok(ftue.completedSteps.includes('firstPrompt'), 'firstPrompt should be back');
+    assert.strictEqual(ftue.completedSteps.length, 4, 'Should have 4 steps again');
+    assert.strictEqual(ftue.completed, true, 'ftue.completed should be true again');
+  });
+
+  test('idempotent: completing already-completed step is safe', async function () {
+    this.timeout(5000);
+    const before = await readFtueConfig();
+    await execSafe('pmcode.openRooSidebar'); // meetAI already done
+    const after = await readFtueConfig();
+
+    assert.deepStrictEqual(after.completedSteps.sort(), before.completedSteps.sort());
+  });
+
+  // Clean up: reset FTUE for other tests
+  suiteTeardown(async function () {
+    this.timeout(10000);
+    const ftue = await readFtueConfig();
+    for (const step of ftue.completedSteps) {
+      await execSafe('pmcode.ftue.toggle', step);
+    }
+  });
+});
+
 suite('PM Code — Package integrity', () => {
   test('all walkthrough markdown files referenced in package.json exist', () => {
     const ext = vscode.extensions.getExtension('pmcode.pmcode');
