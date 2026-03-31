@@ -128,18 +128,29 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
+    "compile:tests": "tsc -p test/tsconfig.json",
     "watch": "npm run compile -- --watch",
     "lint": "eslint src --ext ts",
-    "test": "vitest run"
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "vitest run",
+    "test:integration": "vscode-test",
+    "test:e2e": "extest setup-and-run 'out/test/ui/**/*.test.js'",
+    "coverage": "c8 vitest run"
   },
   "devDependencies": {
+    "@types/mocha": "^10.0.0",
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.85.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "c8": "^9.0.0",
     "esbuild": "^0.20.0",
     "eslint": "^8.56.0",
+    "glob": "^10.0.0",
+    "mocha": "^10.0.0",
     "typescript": "^5.3.0",
     "vitest": "^1.0.0",
-    "@vscode/test-cli": "^0.0.6"
+    "vscode-extension-tester": "^8.0.0"
   },
   "dependencies": {
     "dotenv": "^16.3.0",

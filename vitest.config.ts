@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    exclude: ['test/integration/**', 'test/ui/**', 'node_modules/**'],
     alias: {
       vscode: new URL('./test/__mocks__/vscode.ts', import.meta.url).pathname,
     },
