@@ -57,6 +57,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           break;
         case 'clearSearch':
           break;
+        case 'openWalkthrough':
+          vscode.commands.executeCommand(
+            'workbench.action.openWalkthrough',
+            'pmcode.pmcode#pmcode.gettingStarted',
+            false
+          );
+          break;
         case 'marketplaceSync':
           vscode.commands.executeCommand('pmcode.marketplace.sync');
           break;
@@ -192,7 +199,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     </div>
 
     <!-- Quick Start (FTUE) -->
-    <div class="quick-start-card" id="quickStart" style="display:none;">
+    <div class="quick-start-card" id="quickStart" style="display:none; cursor:pointer;" title="Open Getting Started walkthrough">
       <h4>Quick Start</h4>
       <div class="progress-bar"><div class="progress-fill" id="ftueProgress" style="width:0%"></div></div>
       <p class="text-muted" id="ftueLabel">0 of 0 steps complete</p>
@@ -269,6 +276,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     let activeFilter = 'all';
     let currentResults = [];
+
+    // Quick Start card → open walkthrough
+    quickStart.addEventListener('click', function() {
+      vscode.postMessage({ type: 'openWalkthrough' });
+    });
 
     // Navigation buttons
     document.querySelectorAll('.nav-button').forEach(function(btn) {

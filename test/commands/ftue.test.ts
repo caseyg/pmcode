@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as vscode from 'vscode';
-import { registerFtueCommands, completeFtueStep, FTUE_STEPS, initFtueProgress } from '../../src/commands/ftue';
+import { registerFtueCommands, completeFtueStep, uncompleteFtueStep, FTUE_STEPS, initFtueProgress } from '../../src/commands/ftue';
 
 const { _createMockContext } = vscode as any;
 
@@ -18,6 +18,9 @@ function createMockDeps() {
     },
     sidebarProvider: {
       updateFtueProgress: vi.fn(),
+    },
+    panelManager: {
+      has: vi.fn(() => false),
     },
     providerAdapter: {
       injectPrompt: vi.fn(async () => {}),
@@ -69,6 +72,16 @@ describe('FTUE commands', () => {
     });
 
     it('updates sidebar progress', async () => {
+      // After updateConfig, syncFtueState re-reads config — mock the updated state
+      let called = false;
+      deps.configManager.getConfig.mockImplementation(async () => {
+        if (!called) {
+          called = true;
+          return { ftue: { completed: false, completedSteps: [], phase: 'companion' } };
+        }
+        return { ftue: { completed: false, completedSteps: ['meetAI'], phase: 'companion' } };
+      });
+
       await completeFtueStep('meetAI', deps);
 
       expect(deps.sidebarProvider.updateFtueProgress).toHaveBeenCalledWith(1, 4);
@@ -160,6 +173,73 @@ describe('FTUE commands', () => {
           }),
         })
       );
+    });
+  });
+
+  describe('uncompleteFtueStep', () => {
+    it('removes step from completedSteps', async () => {
+      deps.configManager.getConfig.mockResolvedValue({
+        ftue: { completed: false, completedSteps: ['meetAI', 'connectTool'], phase: 'companion' },
+      });
+
+      await uncompleteFtueStep('meetAI', deps);
+
+      expect(deps.configManager.updateConfig).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ftue: expect.objectContaining({
+            completedSteps: ['connectTool'],
+            completed: false,
+          }),
+        })
+      );
+    });
+
+    it('skips if step not completed', async () => {
+      await uncompleteFtueStep('meetAI', deps);
+
+      expect(deps.configManager.updateConfig).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('ftue.toggle', () => {
+    it('completes step if not done', async () => {
+      await commands.get('pmcode.ftue.toggle')!('meetAI');
+
+      expect(deps.configManager.updateConfig).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ftue: expect.objectContaining({
+            completedSteps: expect.arrayContaining(['meetAI']),
+          }),
+        })
+      );
+    });
+
+    it('uncompletes step if already done', async () => {
+      deps.configManager.getConfig.mockResolvedValue({
+        ftue: { completed: false, completedSteps: ['meetAI'], phase: 'companion' },
+      });
+
+      await commands.get('pmcode.ftue.toggle')!('meetAI');
+
+      expect(deps.configManager.updateConfig).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ftue: expect.objectContaining({
+            completedSteps: [],
+          }),
+        })
+      );
+    });
+
+    it('ignores invalid step IDs', async () => {
+      await commands.get('pmcode.ftue.toggle')!('invalidStep');
+
+      expect(deps.configManager.updateConfig).not.toHaveBeenCalled();
+    });
+
+    it('ignores missing step ID', async () => {
+      await commands.get('pmcode.ftue.toggle')!();
+
+      expect(deps.configManager.updateConfig).not.toHaveBeenCalled();
     });
   });
 

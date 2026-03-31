@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { PanelManager } from './PanelManager';
-import { getNonce, getStylesUri, escapeHtml, ConnectorConfig, ConnectorStatus, statusDotClass, statusLabel, Guide, GuideProgress } from './panelUtils';
+import { getNonce, getStylesUri, escapeHtml, escapeAttr, ConnectorConfig, ConnectorStatus, statusDotClass, statusLabel, Guide, GuideProgress } from './panelUtils';
 import { Skill } from '../skills/SkillParser';
 import { DependencyStatus } from '../system/DependencyChecker';
 import { SetupStatus } from '../system/SetupProgress';
@@ -72,6 +72,9 @@ export class CompanionPanel {
           break;
         case 'runSkill':
           vscode.commands.executeCommand('pmcode.skill.run', message.id);
+          break;
+        case 'toggleFtueStep':
+          vscode.commands.executeCommand('pmcode.ftue.toggle', message.stepId);
           break;
       }
     });
@@ -247,6 +250,11 @@ export class CompanionPanel {
       border: 1.5px solid var(--vscode-editor-foreground);
       opacity: 0.5;
       margin-top: 1px;
+      cursor: pointer;
+    }
+    .ftue-step .step-check:hover {
+      opacity: 0.8;
+      border-color: var(--vscode-focusBorder);
     }
     .ftue-step.completed .step-check {
       background: var(--vscode-testing-iconPassed, #4caf50);
@@ -339,6 +347,17 @@ export class CompanionPanel {
           break;
       }
     });
+
+    // FTUE step toggle — click the check circle to toggle complete/incomplete
+    document.querySelectorAll('.ftue-step[data-ftue-step]').forEach((step) => {
+      const check = step.querySelector('.step-check');
+      if (check) {
+        check.addEventListener('click', (e) => {
+          e.stopPropagation();
+          vscode.postMessage({ type: 'toggleFtueStep', stepId: step.dataset.ftueStep });
+        });
+      }
+    });
   </script>
 </body>
 </html>`;
@@ -400,7 +419,7 @@ export class CompanionPanel {
     for (const step of ftueSteps) {
       const done = completedSet.has(step.id);
       html += `
-          <div class="ftue-step ${done ? 'completed' : ''}">
+          <div class="ftue-step ${done ? 'completed' : ''}" data-ftue-step="${escapeAttr(step.id)}">
             <div class="step-check">${done ? '✓' : ''}</div>
             <div class="step-body">
               <div class="step-title">${escapeHtml(step.title)}</div>

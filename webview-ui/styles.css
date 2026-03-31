@@ -219,6 +219,10 @@ p {
   padding: 10px 12px;
 }
 
+.quick-start-card:hover {
+  border-color: var(--vscode-focusBorder);
+}
+
 .quick-start-card h4 {
   margin-bottom: 6px;
 }

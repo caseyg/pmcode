@@ -91,6 +91,7 @@ suite('PM Code Commands — all registered', () => {
       'pmcode.firstPrompt',
       'pmcode.firstPromptSent',
       'pmcode.ftue.completeExplore',
+      'pmcode.ftue.toggle',
     ];
 
     for (const cmd of expected) {

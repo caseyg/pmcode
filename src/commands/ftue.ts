@@ -11,7 +11,23 @@ export const FTUE_STEPS = ['meetAI', 'connectTool', 'firstPrompt', 'explore'] as
 export type FtueStepId = (typeof FTUE_STEPS)[number];
 
 /**
- * Mark an FTUE step complete and update all three surfaces.
+ * Update all FTUE surfaces after a state change.
+ */
+async function syncFtueState(deps: ExtensionDeps): Promise<void> {
+  const config = await deps.configManager.getConfig();
+  const count = config.ftue.completedSteps.length;
+
+  // Update sidebar progress bar
+  deps.sidebarProvider.updateFtueProgress(count, FTUE_STEPS.length);
+
+  // Refresh dashboard if it's open — re-open it with fresh data
+  if (deps.panelManager.has('companion', 'dashboard')) {
+    void vscode.commands.executeCommand('pmcode.openDashboard');
+  }
+}
+
+/**
+ * Mark an FTUE step complete and update all surfaces.
  */
 export async function completeFtueStep(
   stepId: FtueStepId,
@@ -36,8 +52,35 @@ export async function completeFtueStep(
     },
   });
 
-  // Update sidebar progress
-  deps.sidebarProvider.updateFtueProgress(completedSteps.length, FTUE_STEPS.length);
+  await syncFtueState(deps);
+}
+
+/**
+ * Mark an FTUE step incomplete and update all surfaces.
+ */
+export async function uncompleteFtueStep(
+  stepId: FtueStepId,
+  deps: ExtensionDeps
+): Promise<void> {
+  const config = await deps.configManager.getConfig();
+  const steps = new Set(config.ftue.completedSteps);
+
+  if (!steps.has(stepId)) {
+    return; // already not completed
+  }
+
+  steps.delete(stepId);
+  const completedSteps = [...steps];
+
+  await deps.configManager.updateConfig({
+    ftue: {
+      completedSteps,
+      completed: false,
+      phase: 'companion',
+    },
+  });
+
+  await syncFtueState(deps);
 }
 
 /**
@@ -52,53 +95,60 @@ export function registerFtueCommands(
   deps: ExtensionDeps
 ): void {
   // pmcode.openRooSidebar — "Meet your AI assistant" step
-  // Opens the Roo Code sidebar and marks meetAI complete
   context.subscriptions.push(
     vscode.commands.registerCommand('pmcode.openRooSidebar', async () => {
-      // Try to open Roo Code sidebar
       try {
         await vscode.commands.executeCommand('roocode.sidebar.focus');
       } catch {
-        // Roo Code may not be installed — that's OK
+        // Roo Code may not be installed
       }
       await completeFtueStep('meetAI', deps);
     })
   );
 
   // pmcode.connectorConfigured — "Connect your first tool" step
-  // Fired after a connector is successfully configured
   context.subscriptions.push(
     vscode.commands.registerCommand('pmcode.connectorConfigured', async () => {
       await completeFtueStep('connectTool', deps);
     })
   );
 
-  // pmcode.firstPrompt — "Try talking to your AI" step (trigger)
-  // Sends the first prompt and fires the completion event
+  // pmcode.firstPrompt — trigger the first prompt
   context.subscriptions.push(
     vscode.commands.registerCommand('pmcode.firstPrompt', async () => {
       await vscode.commands.executeCommand(
         'pmcode.sendPrompt',
         'Show me a summary of recent activity across my connected tools.'
       );
-      // firstPromptSent is fired separately after the prompt is actually sent
     })
   );
 
   // pmcode.firstPromptSent — marks the firstPrompt step complete
-  // Called after any prompt is successfully sent during FTUE
   context.subscriptions.push(
     vscode.commands.registerCommand('pmcode.firstPromptSent', async () => {
       await completeFtueStep('firstPrompt', deps);
     })
   );
 
-  // Mark "explore" complete when the dashboard is opened (after FTUE)
-  // This is handled by the onView:pmcode.dashboard completionEvent in package.json,
-  // but we also fire it explicitly when opening the dashboard:
+  // pmcode.ftue.completeExplore — marks the explore step complete
   context.subscriptions.push(
     vscode.commands.registerCommand('pmcode.ftue.completeExplore', async () => {
       await completeFtueStep('explore', deps);
+    })
+  );
+
+  // pmcode.ftue.toggle — toggle a step complete/incomplete (from dashboard)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pmcode.ftue.toggle', async (stepId?: string) => {
+      if (!stepId || !FTUE_STEPS.includes(stepId as FtueStepId)) {
+        return;
+      }
+      const config = await deps.configManager.getConfig();
+      if (config.ftue.completedSteps.includes(stepId)) {
+        await uncompleteFtueStep(stepId as FtueStepId, deps);
+      } else {
+        await completeFtueStep(stepId as FtueStepId, deps);
+      }
     })
   );
 }
