@@ -9,6 +9,7 @@ import {
   escapeAttr,
   statusDotClass,
 } from './panelUtils';
+import { renderMarkdown } from './markdown';
 
 /**
  * Opens a WebviewPanel for a single skill.
@@ -89,7 +90,7 @@ export class SkillDetailPanel {
     const instructionsHtml = skill.instructions
       ? `<div class="detail-section">
           <h2>How it works</h2>
-          <div class="step-content">${simpleMarkdown(skill.instructions)}</div>
+          <div class="step-content markdown-body">${renderMarkdown(skill.instructions)}</div>
         </div>`
       : '';
 
@@ -184,49 +185,6 @@ export class SkillDetailPanel {
   }
 }
 
-/**
- * Very simple markdown to HTML conversion for skill instructions.
- * Handles paragraphs, headings, bold, inline code, and lists.
- */
-function simpleMarkdown(md: string): string {
-  return md
-    .split('\n\n')
-    .map((block) => {
-      const trimmed = block.trim();
-      if (!trimmed) {
-        return '';
-      }
-      if (trimmed.startsWith('### ')) {
-        return `<h3>${escapeHtml(trimmed.slice(4))}</h3>`;
-      }
-      if (trimmed.startsWith('## ')) {
-        return `<h3>${escapeHtml(trimmed.slice(3))}</h3>`;
-      }
-      if (trimmed.startsWith('# ')) {
-        return `<h2>${escapeHtml(trimmed.slice(2))}</h2>`;
-      }
-      // Simple list detection
-      if (/^[-*]\s/.test(trimmed)) {
-        const items = trimmed
-          .split('\n')
-          .filter((line) => /^[-*]\s/.test(line.trim()))
-          .map((line) => `<li>${escapeHtml(line.trim().replace(/^[-*]\s/, ''))}</li>`)
-          .join('');
-        return `<ul>${items}</ul>`;
-      }
-      // Numbered list
-      if (/^\d+\.\s/.test(trimmed)) {
-        const items = trimmed
-          .split('\n')
-          .filter((line) => /^\d+\.\s/.test(line.trim()))
-          .map((line) => `<li>${escapeHtml(line.trim().replace(/^\d+\.\s/, ''))}</li>`)
-          .join('');
-        return `<ol>${items}</ol>`;
-      }
-      return `<p>${escapeHtml(trimmed)}</p>`;
-    })
-    .join('\n');
-}
 
 /**
  * Generate sample prompts based on the skill name and description.

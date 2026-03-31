@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import type { ExtensionDeps } from '../extension';
+import { renderMarkdown } from '../panels/markdown';
 
 /**
  * Register navigation commands: openSkills, openConnectors, openGuides,
@@ -184,7 +185,7 @@ function getSkillDetailHtml(skill: { name: string; description: string; instruct
     skill.name,
     `<p>${escapeHtml(skill.description)}</p>
      <hr />
-     <div class="markdown">${escapeHtml(skill.instructions)}</div>`
+     <div class="markdown-body">${renderMarkdown(skill.instructions)}</div>`
   );
 }
 
@@ -212,7 +213,7 @@ function getGuideDetailHtml(
       (s, i) =>
         `<div class="guide-step">
           <h3>Step ${i + 1}: ${escapeHtml(s.title)}</h3>
-          <p>${escapeHtml(s.content)}</p>
+          <div class="markdown-body">${renderMarkdown(s.content)}</div>
         </div>`
     )
     .join('');

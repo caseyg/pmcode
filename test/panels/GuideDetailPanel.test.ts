@@ -283,9 +283,9 @@ describe('GuideDetailPanel', () => {
     const panel = GuideDetailPanel.show(extensionUri, panelManager, guide, progress);
     const html = panel.webview.html;
 
-    expect(html).toContain('<h3>');
+    expect(html).toContain('<h2>');
     expect(html).toContain('Sub Heading');
-    expect(html).toContain('<p>Paragraph text</p>');
+    expect(html).toContain('Paragraph text');
   });
 
   it('renders markdown in step content — bullet list', () => {
@@ -336,6 +336,7 @@ describe('GuideDetailPanel', () => {
     const panel = GuideDetailPanel.show(extensionUri, panelManager, guide, progress);
     const html = panel.webview.html;
 
+    // Raw HTML tags in markdown source should be escaped
     expect(html).not.toContain('<img onerror');
     expect(html).toContain('&lt;img');
   });

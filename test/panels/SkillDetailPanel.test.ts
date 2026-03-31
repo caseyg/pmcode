@@ -108,8 +108,8 @@ describe('SkillDetailPanel', () => {
     const panel = SkillDetailPanel.show(extensionUri, panelManager, skill, new Map());
     const html = panel.webview.html;
 
+    expect(html).toContain('<h1>');
     expect(html).toContain('<h2>');
-    expect(html).toContain('<h3>');
     expect(html).toContain('Big Heading');
     expect(html).toContain('Sub Heading');
   });

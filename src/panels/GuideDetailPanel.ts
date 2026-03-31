@@ -8,6 +8,7 @@ import {
   escapeHtml,
   escapeAttr,
 } from './panelUtils';
+import { renderMarkdown } from './markdown';
 
 /**
  * Opens a WebviewPanel for a single guide.
@@ -101,7 +102,7 @@ export class GuideDetailPanel {
     let stepContentHtml = '';
     if (step) {
       // Step content (simple markdown)
-      const bodyHtml = simpleMarkdown(step.content);
+      const bodyHtml = renderMarkdown(step.content);
 
       // Prompt buttons
       let promptsHtml = '';
@@ -249,41 +250,3 @@ export class GuideDetailPanel {
   }
 }
 
-/**
- * Very simple markdown to HTML conversion for guide step content.
- */
-function simpleMarkdown(md: string): string {
-  return md
-    .split('\n\n')
-    .map((block) => {
-      const trimmed = block.trim();
-      if (!trimmed) { return ''; }
-      if (trimmed.startsWith('### ')) {
-        return `<h4>${escapeHtml(trimmed.slice(4))}</h4>`;
-      }
-      if (trimmed.startsWith('## ')) {
-        return `<h3>${escapeHtml(trimmed.slice(3))}</h3>`;
-      }
-      if (trimmed.startsWith('# ')) {
-        return `<h2>${escapeHtml(trimmed.slice(2))}</h2>`;
-      }
-      if (/^[-*]\s/.test(trimmed)) {
-        const items = trimmed
-          .split('\n')
-          .filter((l) => /^[-*]\s/.test(l.trim()))
-          .map((l) => `<li>${escapeHtml(l.trim().replace(/^[-*]\s/, ''))}</li>`)
-          .join('');
-        return `<ul>${items}</ul>`;
-      }
-      if (/^\d+\.\s/.test(trimmed)) {
-        const items = trimmed
-          .split('\n')
-          .filter((l) => /^\d+\.\s/.test(l.trim()))
-          .map((l) => `<li>${escapeHtml(l.trim().replace(/^\d+\.\s/, ''))}</li>`)
-          .join('');
-        return `<ol>${items}</ol>`;
-      }
-      return `<p>${escapeHtml(trimmed)}</p>`;
-    })
-    .join('\n');
-}

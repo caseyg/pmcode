@@ -41,13 +41,66 @@ export function registerCoreCommands(
     })
   );
 
-  // pmcode.search — open sidebar with search query pre-filled
+  // pmcode.search — search skills, connectors, guides and send results to sidebar
+  // Called by sidebar webview (with query) or command palette (with optional query)
   context.subscriptions.push(
-    vscode.commands.registerCommand('pmcode.search', (query?: string) => {
-      deps.sidebarProvider.focus();
-      if (query) {
-        deps.sidebarProvider.setSearchQuery(query);
+    vscode.commands.registerCommand('pmcode.search', async (query?: string, fromSidebar?: boolean) => {
+      if (!fromSidebar) {
+        deps.sidebarProvider.focus();
+        if (query) {
+          deps.sidebarProvider.setSearchQuery(query);
+          // setSearchQuery triggers the webview input event which calls back with fromSidebar=true
+          return;
+        }
       }
+
+      if (!query) {
+        deps.sidebarProvider.sendSearchResults([]);
+        return;
+      }
+
+      const q = query.toLowerCase();
+      const results: import('../sidebar/SidebarProvider').SearchResult[] = [];
+
+      // Search skills
+      const skills = await deps.skillManager.getInstalledSkills();
+      for (const s of skills) {
+        if (
+          s.name.toLowerCase().includes(q) ||
+          s.id.toLowerCase().includes(q) ||
+          s.description.toLowerCase().includes(q) ||
+          (s.metadata?.category || '').toLowerCase().includes(q)
+        ) {
+          results.push({ category: 'skills', id: s.id, name: s.name, description: s.description, icon: '\u26A1' });
+        }
+      }
+
+      // Search connectors
+      const connectors = await deps.connectorManager.getConnectors();
+      for (const c of connectors) {
+        if (
+          c.name.toLowerCase().includes(q) ||
+          c.id.toLowerCase().includes(q) ||
+          c.description.toLowerCase().includes(q)
+        ) {
+          results.push({ category: 'connectors', id: c.id, name: c.name, description: c.description, icon: '\uD83D\uDD17' });
+        }
+      }
+
+      // Search guides
+      const guides = deps.guideEngine.getGuides();
+      for (const g of guides) {
+        if (
+          g.title.toLowerCase().includes(q) ||
+          g.id.toLowerCase().includes(q) ||
+          g.description.toLowerCase().includes(q) ||
+          g.type.toLowerCase().includes(q)
+        ) {
+          results.push({ category: 'guides', id: g.id, name: g.title, description: g.description, icon: '\uD83D\uDCD6' });
+        }
+      }
+
+      deps.sidebarProvider.sendSearchResults(results);
     })
   );
 

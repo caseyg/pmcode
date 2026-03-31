@@ -46,7 +46,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     webviewView.webview.onDidReceiveMessage((message) => {
       switch (message.type) {
         case 'search':
-          vscode.commands.executeCommand('pmcode.search', message.query);
+          // Run search and send results back — don't re-focus sidebar
+          this.performSearch(message.query);
           break;
         case 'navigate':
           this.handleNavigate(message.target);
@@ -131,6 +132,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
    */
   focus(): void {
     this.view?.show(true);
+  }
+
+  private performSearch(query: string): void {
+    // Execute search command — it will call sendSearchResults() back to us
+    // Pass fromSidebar=true to avoid re-focusing and re-setting the query
+    vscode.commands.executeCommand('pmcode.search', query, true);
   }
 
   private handleNavigate(target: string): void {
@@ -317,13 +324,27 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       });
     });
 
+    function highlightMatch(text, query) {
+      if (!query) { return escapeHtml(text); }
+      var escaped = escapeHtml(text);
+      var q = query.toLowerCase();
+      var lower = text.toLowerCase();
+      var idx = lower.indexOf(q);
+      if (idx === -1) { return escaped; }
+      var before = escapeHtml(text.slice(0, idx));
+      var match = escapeHtml(text.slice(idx, idx + query.length));
+      var after = escapeHtml(text.slice(idx + query.length));
+      return before + '<mark>' + match + '</mark>' + after;
+    }
+
     function renderResults() {
+      var query = searchInput.value.trim();
       var filtered = activeFilter === 'all'
         ? currentResults
         : currentResults.filter(function(r) { return r.category === activeFilter; });
 
       if (filtered.length === 0) {
-        searchResults.innerHTML = '<div class="search-empty">No results found</div>';
+        searchResults.innerHTML = '<div class="search-empty">' + (query ? 'No results found' : 'Type to search...') + '</div>';
         return;
       }
 
@@ -345,8 +366,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           html += '<div class="result-item" data-category="' + escapeHtml(item.category)
             + '" data-id="' + escapeHtml(item.id) + '">'
             + '<span class="result-icon">' + escapeHtml(item.icon) + '</span>'
-            + '<span class="result-name">' + escapeHtml(item.name) + '</span>'
-            + '<span class="result-desc">' + escapeHtml(item.description) + '</span>'
+            + '<span class="result-name">' + highlightMatch(item.name, query) + '</span>'
+            + '<span class="result-desc">' + highlightMatch(item.description, query) + '</span>'
             + '</div>';
         }
       }
