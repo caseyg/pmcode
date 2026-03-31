@@ -51,7 +51,7 @@
               "markdown": "media/walkthrough/meet-ai.md"
             },
             "completionEvents": [
-              "onCommand:pmcode.openRooSidebar"
+              "onContext:pmcode.ftue.meetAI"
             ]
           },
           {
@@ -62,7 +62,7 @@
               "markdown": "media/walkthrough/connect-tool.md"
             },
             "completionEvents": [
-              "onCommand:pmcode.connectorConfigured"
+              "onContext:pmcode.ftue.connectTool"
             ]
           },
           {
@@ -73,7 +73,7 @@
               "markdown": "media/walkthrough/first-prompt.md"
             },
             "completionEvents": [
-              "onCommand:pmcode.firstPromptSent"
+              "onContext:pmcode.ftue.firstPrompt"
             ]
           },
           {
@@ -84,7 +84,7 @@
               "markdown": "media/walkthrough/ready.md"
             },
             "completionEvents": [
-              "onCommand:pmcode.ftue.completeExplore"
+              "onContext:pmcode.ftue.explore"
             ]
           }
         ]

@@ -209,11 +209,20 @@ describe('FTUE state synchronization', () => {
       expect(deps.panelManager.closePanel).not.toHaveBeenCalled();
     });
 
-    it('toggle fires walkthrough command when completing', async () => {
+    it('toggle sets context key when completing', async () => {
       await commands.get('pmcode.ftue.toggle')!('connectTool');
 
-      // Should fire pmcode.connectorConfigured for walkthrough sync
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('pmcode.connectorConfigured');
+      // Should set context key for walkthrough sync
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'pmcode.ftue.connectTool', true);
+    });
+
+    it('toggle clears context key when uncompleting', async () => {
+      await commands.get('pmcode.connectorConfigured')!(); // complete first
+      vi.mocked(vscode.commands.executeCommand).mockClear();
+
+      await commands.get('pmcode.ftue.toggle')!('connectTool'); // uncomplete
+
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'pmcode.ftue.connectTool', false);
     });
 
     it('toggle with invalid stepId is a no-op', async () => {
@@ -296,14 +305,17 @@ describe('FTUE state synchronization', () => {
       expect(deps.sidebarProvider.updateFtueProgress).toHaveBeenCalledWith(2, 4);
     });
 
-    it('fires walkthrough commands for persisted steps', async () => {
+    it('sets context keys for persisted steps', async () => {
       await commands.get('pmcode.openRooSidebar')!();
       vi.mocked(vscode.commands.executeCommand).mockClear();
 
       await initFtueProgress(deps);
 
-      // Should fire the walkthrough command for meetAI
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('pmcode.openRooSidebar');
+      // Should set context key for meetAI=true, others=false
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'pmcode.ftue.meetAI', true);
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'pmcode.ftue.connectTool', false);
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'pmcode.ftue.firstPrompt', false);
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'pmcode.ftue.explore', false);
     });
 
     it('sends 0/4 when no steps completed', async () => {
@@ -314,35 +326,32 @@ describe('FTUE state synchronization', () => {
   });
 
   describe('no infinite recursion', () => {
-    it('walkthrough command → completeFtueStep → no re-fire of same command', async () => {
-      // pmcode.connectorConfigured calls completeFtueStep('connectTool')
-      // completeFtueStep should NOT fire pmcode.connectorConfigured again
-      // (only toggleFtueStep fires walkthrough commands)
+    it('completeFtueStep uses setContext not commands — no recursion possible', async () => {
       const executeSpy = vi.mocked(vscode.commands.executeCommand);
       executeSpy.mockClear();
 
       await commands.get('pmcode.connectorConfigured')!();
 
-      // executeCommand should NOT have been called with pmcode.connectorConfigured
-      // from within completeFtueStep (only the initial call counts)
+      // Should only see setContext calls, not re-firing of pmcode.connectorConfigured
       const connectorCalls = executeSpy.mock.calls.filter(
         (c) => c[0] === 'pmcode.connectorConfigured'
       );
-      // The only call is from the toggle path, not from completeFtueStep
       expect(connectorCalls.length).toBe(0);
+
+      // But should have setContext calls
+      const contextCalls = executeSpy.mock.calls.filter(
+        (c) => c[0] === 'setContext'
+      );
+      expect(contextCalls.length).toBeGreaterThan(0);
     });
 
-    it('toggle → completeFtueStep → fires walkthrough → completeFtueStep no-ops', async () => {
-      // Directly test: complete a step, then call the walkthrough command.
-      // The second call should no-op because the step is already done.
+    it('completing same step twice only writes config once', async () => {
       await completeFtueStep('connectTool', deps);
       expect(deps.configManager.updateConfig).toHaveBeenCalledTimes(1);
 
       deps.configManager.updateConfig.mockClear();
-      // Simulate what the walkthrough command does
-      await commands.get('pmcode.connectorConfigured')!();
+      await completeFtueStep('connectTool', deps);
 
-      // Should not have updated config again — step was already done
       expect(deps.configManager.updateConfig).not.toHaveBeenCalled();
     });
   });

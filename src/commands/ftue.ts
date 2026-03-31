@@ -11,19 +11,20 @@ export const FTUE_STEPS = ['meetAI', 'connectTool', 'firstPrompt', 'explore'] as
 export type FtueStepId = (typeof FTUE_STEPS)[number];
 
 /**
- * Map FTUE step IDs to the walkthrough completion commands.
- * VS Code listens for these via onCommand completionEvents in package.json.
+ * Sync all context keys to match the current FTUE state.
+ * VS Code walkthrough uses `onContext:pmcode.ftue.<stepId>` completionEvents
+ * which re-evaluate whenever the context key changes.
+ * Setting to true checks the step, false unchecks it.
  */
-const STEP_TO_WALKTHROUGH_COMMAND: Record<string, string> = {
-  meetAI: 'pmcode.openRooSidebar',
-  connectTool: 'pmcode.connectorConfigured',
-  firstPrompt: 'pmcode.firstPromptSent',
-  explore: 'pmcode.ftue.completeExplore',
-};
+async function syncWalkthroughContext(completedSteps: string[]): Promise<void> {
+  const completed = new Set(completedSteps);
+  for (const stepId of FTUE_STEPS) {
+    void vscode.commands.executeCommand('setContext', `pmcode.ftue.${stepId}`, completed.has(stepId));
+  }
+}
 
 /**
- * Refresh sidebar and dashboard to reflect current FTUE state.
- * Does NOT fire walkthrough commands — that's the caller's job.
+ * Refresh sidebar, dashboard, and walkthrough to reflect current FTUE state.
  */
 async function refreshFtueUI(deps: ExtensionDeps): Promise<void> {
   const config = await deps.configManager.getConfig();
@@ -31,6 +32,9 @@ async function refreshFtueUI(deps: ExtensionDeps): Promise<void> {
 
   // Update sidebar progress bar
   deps.sidebarProvider.updateFtueProgress(count, FTUE_STEPS.length);
+
+  // Update walkthrough context keys
+  await syncWalkthroughContext(config.ftue.completedSteps);
 
   // Refresh dashboard if it's open
   if (deps.panelManager.has('companion', 'dashboard')) {
@@ -98,8 +102,8 @@ export async function uncompleteFtueStep(
 }
 
 /**
- * Toggle a step and fire the walkthrough command if completing.
- * This is the entry point for user-initiated toggles (dashboard checkboxes).
+ * Toggle a step complete/incomplete.
+ * Entry point for user-initiated toggles (dashboard checkboxes).
  */
 async function toggleFtueStep(
   stepId: FtueStepId,
@@ -110,16 +114,8 @@ async function toggleFtueStep(
 
   if (isCompleted) {
     await uncompleteFtueStep(stepId, deps);
-    // Can't "uncomplete" a VS Code walkthrough step — that's a VS Code limitation
   } else {
     await completeFtueStep(stepId, deps);
-    // Fire the walkthrough command so VS Code marks the step done
-    const cmd = STEP_TO_WALKTHROUGH_COMMAND[stepId];
-    if (cmd) {
-      // The command will call completeFtueStep again, but it will no-op
-      // because the step is already in completedSteps
-      void vscode.commands.executeCommand(cmd);
-    }
   }
 }
 
@@ -189,20 +185,10 @@ export function registerFtueCommands(
 }
 
 /**
- * Send initial FTUE progress to sidebar on startup.
- * Also fires walkthrough commands for any already-completed steps
- * so the VS Code walkthrough reflects persisted state.
+ * Send initial FTUE progress to sidebar and walkthrough on startup.
  */
 export async function initFtueProgress(deps: ExtensionDeps): Promise<void> {
   const config = await deps.configManager.getConfig();
-  const completed = config.ftue.completedSteps.length;
-  deps.sidebarProvider.updateFtueProgress(completed, FTUE_STEPS.length);
-
-  // Sync persisted state to VS Code walkthrough
-  for (const stepId of config.ftue.completedSteps) {
-    const cmd = STEP_TO_WALKTHROUGH_COMMAND[stepId];
-    if (cmd) {
-      void vscode.commands.executeCommand(cmd);
-    }
-  }
+  deps.sidebarProvider.updateFtueProgress(config.ftue.completedSteps.length, FTUE_STEPS.length);
+  await syncWalkthroughContext(config.ftue.completedSteps);
 }
