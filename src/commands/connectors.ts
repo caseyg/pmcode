@@ -39,9 +39,9 @@ export function registerConnectorCommands(
     })
   );
 
-  // pmcode.connector.configure
+  // pmcode.connector.configure — save connector config values or open the form
   context.subscriptions.push(
-    vscode.commands.registerCommand('pmcode.connector.configure', async (id?: string) => {
+    vscode.commands.registerCommand('pmcode.connector.configure', async (id?: string, values?: Record<string, string>) => {
       if (!id) {
         const connectors = await deps.connectorManager.getConnectors();
         const pick = await vscode.window.showQuickPick(
@@ -54,7 +54,23 @@ export function registerConnectorCommands(
         return;
       }
 
-      // Open the connector detail panel which contains the configuration form
+      // If values are provided, save them
+      if (values && Object.keys(values).length > 0) {
+        try {
+          await deps.connectorManager.configure(id, values);
+          void vscode.window.showInformationMessage(`${id} connector configured.`);
+          // Signal FTUE completion
+          void vscode.commands.executeCommand('pmcode.connectorConfigured');
+          // Refresh the connector panel with updated status
+          await vscode.commands.executeCommand('pmcode.openConnector', id);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          void vscode.window.showErrorMessage(`Failed to configure connector: ${message}`);
+        }
+        return;
+      }
+
+      // No values — open the connector detail panel with the configuration form
       await vscode.commands.executeCommand('pmcode.openConnector', id);
     })
   );

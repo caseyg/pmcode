@@ -407,6 +407,31 @@ export class ConnectorManager {
     await this.providerAdapter.writeMcpConfig(configPath, mcpConfig);
   }
 
+  /**
+   * Get the current configured field values for a connector.
+   * Returns non-secret values from the settings file and secret placeholders.
+   */
+  async getFieldValues(id: string): Promise<Record<string, string>> {
+    const settings = await this.readSettings(id);
+    const values: Record<string, string> = { ...settings.values };
+
+    // Add env-stored secret values
+    const def = this.definitions.get(id);
+    if (def) {
+      for (const field of def.fields) {
+        if (field.type === 'password') {
+          const envKey = def.mcpServer?.envMapping[field.id] ?? field.id.toUpperCase();
+          const envVal = await this.envManager.getToken(envKey);
+          if (envVal) {
+            values[field.id] = envVal;
+          }
+        }
+      }
+    }
+
+    return values;
+  }
+
   private async readSettings(id: string): Promise<ConnectorSettingsFile> {
     const settingsPath = path.join(ConnectorManager.CONNECTORS_DIR, `${id}.json`);
     try {

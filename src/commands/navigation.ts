@@ -1,6 +1,12 @@
 import * as vscode from 'vscode';
 import type { ExtensionDeps } from '../extension';
-import { renderMarkdown } from '../panels/markdown';
+import { SkillsListPanel } from '../panels/SkillsListPanel';
+import { ConnectorsListPanel } from '../panels/ConnectorsListPanel';
+import { GuidesListPanel } from '../panels/GuidesListPanel';
+import { SkillDetailPanel } from '../panels/SkillDetailPanel';
+import { ConnectorDetailPanel } from '../panels/ConnectorDetailPanel';
+import { GuideDetailPanel } from '../panels/GuideDetailPanel';
+import type { ConnectorStatus } from '../panels/panelUtils';
 
 /**
  * Register navigation commands: openSkills, openConnectors, openGuides,
@@ -14,14 +20,7 @@ export function registerNavigationCommands(
   context.subscriptions.push(
     vscode.commands.registerCommand('pmcode.openSkills', async () => {
       const skills = await deps.skillManager.getInstalledSkills();
-      const panel = deps.panelManager.openPanel('skills-list', 'list', 'Skills', () => {
-        return getSkillsListHtml(skills);
-      });
-      panel.webview.onDidReceiveMessage((message) => {
-        if (message.type === 'openItem' && message.id) {
-          vscode.commands.executeCommand('pmcode.openSkill', message.id);
-        }
-      });
+      SkillsListPanel.show(context.extensionUri, deps.panelManager, skills);
     })
   );
 
@@ -29,29 +28,19 @@ export function registerNavigationCommands(
   context.subscriptions.push(
     vscode.commands.registerCommand('pmcode.openConnectors', async () => {
       const connectors = await deps.connectorManager.getConnectors();
-      const panel = deps.panelManager.openPanel('connectors-list', 'list', 'Connectors', () => {
-        return getConnectorsListHtml(connectors);
-      });
-      panel.webview.onDidReceiveMessage((message) => {
-        if (message.type === 'openItem' && message.id) {
-          vscode.commands.executeCommand('pmcode.openConnector', message.id);
-        }
-      });
+      ConnectorsListPanel.show(context.extensionUri, deps.panelManager, connectors);
     })
   );
 
   // pmcode.openGuides — open the Guides list panel
   context.subscriptions.push(
-    vscode.commands.registerCommand('pmcode.openGuides', () => {
+    vscode.commands.registerCommand('pmcode.openGuides', async () => {
       const guides = deps.guideEngine.getGuides();
-      const panel = deps.panelManager.openPanel('guides-list', 'list', 'Guides', () => {
-        return getGuidesListHtml(guides);
-      });
-      panel.webview.onDidReceiveMessage((message) => {
-        if (message.type === 'openItem' && message.id) {
-          vscode.commands.executeCommand('pmcode.openGuide', message.id);
-        }
-      });
+      const progress = new Map<string, import('../panels/panelUtils').GuideProgress>();
+      for (const guide of guides) {
+        progress.set(guide.id, await deps.guideEngine.getProgress(guide.id));
+      }
+      GuidesListPanel.show(context.extensionUri, deps.panelManager, guides, progress);
     })
   );
 
@@ -74,9 +63,15 @@ export function registerNavigationCommands(
         void vscode.window.showWarningMessage(`Skill "${id}" not found.`);
         return;
       }
-      deps.panelManager.openPanel('skill-detail', id, skill.name, () => {
-        return getSkillDetailHtml(skill);
-      });
+
+      // Gather connector statuses for the skill's required connectors
+      const connectorStatuses = new Map<string, ConnectorStatus>();
+      for (const cId of skill.metadata.connectors || []) {
+        const status = await deps.connectorManager.getStatus(cId);
+        connectorStatuses.set(cId, status);
+      }
+
+      SkillDetailPanel.show(context.extensionUri, deps.panelManager, skill, connectorStatuses);
     })
   );
 
@@ -99,9 +94,11 @@ export function registerNavigationCommands(
         void vscode.window.showWarningMessage(`Connector "${id}" not found.`);
         return;
       }
-      deps.panelManager.openPanel('connector-detail', id, connector.name, () => {
-        return getConnectorDetailHtml(connector);
-      });
+
+      // Get current field values for the config form
+      const currentValues = await deps.connectorManager.getFieldValues(id);
+
+      ConnectorDetailPanel.show(context.extensionUri, deps.panelManager, connector, currentValues);
     })
   );
 
@@ -124,162 +121,10 @@ export function registerNavigationCommands(
         void vscode.window.showWarningMessage(`Guide "${id}" not found.`);
         return;
       }
-      deps.panelManager.openPanel('guide-detail', id, guide.title, () => {
-        return getGuideDetailHtml(guide);
-      });
+
+      const progress = await deps.guideEngine.getProgress(id);
+
+      GuideDetailPanel.show(context.extensionUri, deps.panelManager, guide, progress);
     })
   );
-}
-
-// ── HTML generators (basic placeholders for webview content) ───────────────
-
-function getSkillsListHtml(skills: Array<{ id: string; name: string; description: string }>): string {
-  const items = skills
-    .map(
-      (s) =>
-        `<div class="list-item" data-id="${s.id}">
-          <h3>${escapeHtml(s.name)}</h3>
-          <p>${escapeHtml(s.description)}</p>
-        </div>`
-    )
-    .join('');
-
-  return wrapHtml('Skills', items || '<p>No skills installed yet.</p>');
-}
-
-function getConnectorsListHtml(
-  connectors: Array<{ id: string; name: string; description: string; status: string }>
-): string {
-  const items = connectors
-    .map(
-      (c) =>
-        `<div class="list-item" data-id="${c.id}">
-          <h3>${escapeHtml(c.name)} <span class="status-badge">${c.status}</span></h3>
-          <p>${escapeHtml(c.description)}</p>
-        </div>`
-    )
-    .join('');
-
-  return wrapHtml('Connectors', items || '<p>No connectors available.</p>');
-}
-
-function getGuidesListHtml(
-  guides: Array<{ id: string; title: string; description: string; estimatedMinutes: number; type: string }>
-): string {
-  const items = guides
-    .map(
-      (g) =>
-        `<div class="list-item" data-id="${g.id}">
-          <h3>${escapeHtml(g.title)}</h3>
-          <p>${escapeHtml(g.description)}</p>
-          <span class="meta">${g.type} &middot; ~${g.estimatedMinutes} min</span>
-        </div>`
-    )
-    .join('');
-
-  return wrapHtml('Guides', items || '<p>No guides available.</p>');
-}
-
-function getSkillDetailHtml(skill: { name: string; description: string; instructions: string }): string {
-  return wrapHtml(
-    skill.name,
-    `<p>${escapeHtml(skill.description)}</p>
-     <hr />
-     <div class="markdown-body">${renderMarkdown(skill.instructions)}</div>`
-  );
-}
-
-function getConnectorDetailHtml(
-  connector: { name: string; description: string; status: string; examplePrompts: string[] }
-): string {
-  const prompts = connector.examplePrompts
-    .map((p) => `<li>${escapeHtml(p)}</li>`)
-    .join('');
-
-  return wrapHtml(
-    connector.name,
-    `<p>${escapeHtml(connector.description)}</p>
-     <p><strong>Status:</strong> ${connector.status}</p>
-     <h3>Example prompts</h3>
-     <ul>${prompts}</ul>`
-  );
-}
-
-function getGuideDetailHtml(
-  guide: { title: string; description: string; steps: Array<{ title: string; content: string }> }
-): string {
-  const steps = guide.steps
-    .map(
-      (s, i) =>
-        `<div class="guide-step">
-          <h3>Step ${i + 1}: ${escapeHtml(s.title)}</h3>
-          <div class="markdown-body">${renderMarkdown(s.content)}</div>
-        </div>`
-    )
-    .join('');
-
-  return wrapHtml(
-    guide.title,
-    `<p>${escapeHtml(guide.description)}</p><hr />${steps}`
-  );
-}
-
-function wrapHtml(title: string, body: string): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${escapeHtml(title)}</title>
-  <style>
-    body {
-      font-family: var(--vscode-font-family);
-      color: var(--vscode-foreground);
-      background: var(--vscode-editor-background);
-      padding: 24px;
-      margin: 0;
-      max-width: 800px;
-    }
-    h1 { font-size: 22px; margin-bottom: 16px; }
-    h3 { font-size: 16px; margin-top: 16px; }
-    .list-item {
-      padding: 12px;
-      border: 1px solid var(--vscode-panel-border);
-      border-radius: 6px;
-      margin-bottom: 10px;
-      cursor: pointer;
-    }
-    .list-item:hover { background: var(--vscode-list-hoverBackground); }
-    .list-item h3 { margin: 0 0 4px; font-size: 15px; }
-    .list-item p { margin: 0; font-size: 13px; opacity: 0.8; }
-    .status-badge {
-      font-size: 11px; padding: 2px 6px; border-radius: 4px;
-      background: var(--vscode-badge-background); color: var(--vscode-badge-foreground);
-    }
-    .meta { font-size: 12px; opacity: 0.6; }
-    .guide-step { margin-bottom: 20px; }
-    hr { border: none; border-top: 1px solid var(--vscode-panel-border); margin: 16px 0; }
-  </style>
-</head>
-<body>
-  <h1>${escapeHtml(title)}</h1>
-  ${body}
-  <script>
-    var vscode = acquireVsCodeApi();
-    document.querySelectorAll('.list-item[data-id]').forEach(function(item) {
-      item.addEventListener('click', function() {
-        vscode.postMessage({ type: 'openItem', id: item.dataset.id });
-      });
-    });
-  </script>
-</body>
-</html>`;
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
 }

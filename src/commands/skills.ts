@@ -98,6 +98,17 @@ export function registerSkillCommands(
         : `Run the "${skill.name}" skill.`;
 
       await vscode.commands.executeCommand('pmcode.sendPrompt', promptText);
+
+      // Record skill usage for "Recently Used" on dashboard
+      try {
+        const config = await deps.configManager.getConfig();
+        const used = config.skills.used.filter((s: string) => s !== id);
+        used.unshift(id!);
+        // Keep last 10
+        await deps.configManager.updateConfig({ skills: { used: used.slice(0, 10) } });
+      } catch {
+        // Non-critical — don't block the skill run
+      }
     })
   );
 }

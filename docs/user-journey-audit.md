@@ -1,6 +1,6 @@
 # PM Code User Journey Audit
 
-**Date:** 2026-03-31
+**Date:** 2026-04-01
 **Total tests:** 72 | **Passed:** 72 | **Failed:** 0
 
 ---
@@ -161,11 +161,6 @@ All 72 test steps across 9 user journeys passed. Every registered command execut
 - Package integrity: walkthrough markdown, icons, dist bundle
 - Error handling: non-existent IDs, missing args, out-of-range steps
 - Rapid panel switching without crashes
-
-### Observations:
-
-- `guide.start` calls `completeStep(guideId, -1)` which inserts `-1` into the completedSteps array. This is a minor quirk -- step -1 is not a real step, but it does not cause errors. The comment in the source acknowledges this as a workaround to set `startedAt`.
-- 43 commands are registered (more than the 37 in package.json, due to internal commands like `pmcode.ftue.completeExplore` and `pmcode.ftue.toggle`).
 
 ### Known limitations (not bugs):
 

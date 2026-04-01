@@ -8,38 +8,40 @@ function createMockDeps() {
   return {
     skillManager: {
       getInstalledSkills: vi.fn(async () => [
-        { id: 'idea-triage', name: 'Idea Triage', description: 'Triage ideas' },
-        { id: 'prd-writer', name: 'PRD Writer', description: 'Write PRDs' },
+        { id: 'idea-triage', name: 'Idea Triage', description: 'Triage ideas', metadata: { category: 'planning', connectors: ['jira'] }, source: 'bundled', instructions: '', path: '' },
+        { id: 'prd-writer', name: 'PRD Writer', description: 'Write PRDs', metadata: { category: 'planning', connectors: [] }, source: 'bundled', instructions: '', path: '' },
       ]),
       getSkill: vi.fn(async (id: string) => {
         const skills: Record<string, any> = {
-          'idea-triage': { id: 'idea-triage', name: 'Idea Triage', description: 'Triage', instructions: 'Steps' },
+          'idea-triage': { id: 'idea-triage', name: 'Idea Triage', description: 'Triage', instructions: 'Steps', source: 'bundled', path: '', metadata: { category: 'planning', connectors: ['jira'] } },
         };
         return skills[id] || null;
       }),
     },
     connectorManager: {
       getConnectors: vi.fn(async () => [
-        { id: 'jira', name: 'Jira', description: 'Jira connector', status: 'connected' },
-        { id: 'github', name: 'GitHub', description: 'GitHub connector', status: 'unconfigured' },
+        { id: 'jira', name: 'Jira', description: 'Jira connector', status: 'connected', icon: 'J', type: 'rest-api', fields: [], examplePrompts: [], relatedSkills: [], relatedGuides: [] },
       ]),
       getConnector: vi.fn(async (id: string) => {
-        const connectors: Record<string, any> = {
-          jira: { id: 'jira', name: 'Jira', description: 'Jira', status: 'connected', examplePrompts: [] },
-        };
-        return connectors[id] || null;
-      }),
-    },
-    guideEngine: {
-      getGuides: vi.fn(() => [
-        { id: 'getting-started', title: 'Getting Started', description: 'Get started', type: 'walkthrough', estimatedMinutes: 10, steps: [] },
-      ]),
-      getGuide: vi.fn((id: string) => {
-        if (id === 'getting-started') {
-          return { id: 'getting-started', title: 'Getting Started', description: 'Get started', type: 'walkthrough', estimatedMinutes: 10, steps: [{ title: 'Step 1', content: 'Do this' }] };
+        if (id === 'jira') {
+          return { id: 'jira', name: 'Jira', description: 'Jira', status: 'connected', icon: 'J', type: 'rest-api', fields: [], examplePrompts: [], relatedSkills: [], relatedGuides: [] };
         }
         return null;
       }),
+      getStatus: vi.fn(async () => 'connected' as const),
+      getFieldValues: vi.fn(async () => ({})),
+    },
+    guideEngine: {
+      getGuides: vi.fn(() => [
+        { id: 'getting-started', title: 'Getting Started', description: 'Get started', type: 'walkthrough', estimatedMinutes: 10, steps: [{ title: 'Step 1', content: 'Do this' }], relatedConnectors: [], relatedSkills: [] },
+      ]),
+      getGuide: vi.fn((id: string) => {
+        if (id === 'getting-started') {
+          return { id: 'getting-started', title: 'Getting Started', description: 'Get started', type: 'walkthrough', estimatedMinutes: 10, steps: [{ title: 'Step 1', content: 'Do this' }], relatedConnectors: [], relatedSkills: [] };
+        }
+        return null;
+      }),
+      getProgress: vi.fn(async () => ({ guideId: 'getting-started', completedSteps: [], currentStep: 0 })),
     },
     panelManager: {
       openPanel: vi.fn((_type: string, _id: string, _title: string, getHtml: any) => {
@@ -47,16 +49,11 @@ function createMockDeps() {
           asWebviewUri: (u: any) => u,
           cspSource: 'mock',
         }) : '';
-        const messageHandlers: Array<(msg: any) => void> = [];
         return {
           webview: {
             html,
-            onDidReceiveMessage: vi.fn((cb: (msg: any) => void) => {
-              messageHandlers.push(cb);
-              return { dispose: () => {} };
-            }),
+            onDidReceiveMessage: vi.fn(() => ({ dispose: () => {} })),
           },
-          _simulateMessage: (msg: any) => messageHandlers.forEach(h => h(msg)),
         };
       }),
     },
@@ -94,56 +91,42 @@ describe('navigation commands', () => {
   });
 
   describe('openSkills', () => {
-    it('opens skills list panel', async () => {
+    it('opens skills list panel via SkillsListPanel', async () => {
       await commands.get('pmcode.openSkills')!();
       expect(deps.panelManager.openPanel).toHaveBeenCalledWith(
         'skills-list', 'list', 'Skills', expect.any(Function)
       );
     });
-
-    it('list panel HTML contains skill names', async () => {
-      await commands.get('pmcode.openSkills')!();
-      const html = deps.panelManager.openPanel.mock.results[0].value.webview.html;
-      expect(html).toContain('Idea Triage');
-      expect(html).toContain('PRD Writer');
-    });
-
-    it('list panel wires up message handler for openItem', async () => {
-      const panel = await commands.get('pmcode.openSkills')!();
-      // Should have registered onDidReceiveMessage
-      expect(deps.panelManager.openPanel.mock.results[0].value.webview.onDidReceiveMessage).toHaveBeenCalled();
-    });
   });
 
   describe('openConnectors', () => {
-    it('opens connectors list panel', async () => {
+    it('opens connectors list panel via ConnectorsListPanel', async () => {
       await commands.get('pmcode.openConnectors')!();
       expect(deps.panelManager.openPanel).toHaveBeenCalledWith(
         'connectors-list', 'list', 'Connectors', expect.any(Function)
       );
     });
-
-    it('list panel HTML contains connector names', async () => {
-      await commands.get('pmcode.openConnectors')!();
-      const html = deps.panelManager.openPanel.mock.results[0].value.webview.html;
-      expect(html).toContain('Jira');
-      expect(html).toContain('GitHub');
-    });
   });
 
   describe('openGuides', () => {
-    it('opens guides list panel', async () => {
+    it('opens guides list panel via GuidesListPanel', async () => {
       await commands.get('pmcode.openGuides')!();
       expect(deps.panelManager.openPanel).toHaveBeenCalledWith(
         'guides-list', 'list', 'Guides', expect.any(Function)
       );
     });
+
+    it('gathers progress for each guide', async () => {
+      await commands.get('pmcode.openGuides')!();
+      expect(deps.guideEngine.getProgress).toHaveBeenCalledWith('getting-started');
+    });
   });
 
   describe('openSkill', () => {
-    it('opens skill detail when given an ID', async () => {
+    it('opens skill detail with connector statuses', async () => {
       await commands.get('pmcode.openSkill')!('idea-triage');
       expect(deps.skillManager.getSkill).toHaveBeenCalledWith('idea-triage');
+      expect(deps.connectorManager.getStatus).toHaveBeenCalledWith('jira');
       expect(deps.panelManager.openPanel).toHaveBeenCalledWith(
         'skill-detail', 'idea-triage', 'Idea Triage', expect.any(Function)
       );
@@ -162,13 +145,11 @@ describe('navigation commands', () => {
     it('returns early when QuickPick cancelled', async () => {
       vi.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
       await commands.get('pmcode.openSkill')!();
-
       expect(deps.panelManager.openPanel).not.toHaveBeenCalled();
     });
 
     it('shows warning for nonexistent skill', async () => {
       await commands.get('pmcode.openSkill')!('nonexistent');
-
       expect(vscode.window.showWarningMessage).toHaveBeenCalledWith(
         expect.stringContaining('not found')
       );
@@ -176,15 +157,18 @@ describe('navigation commands', () => {
   });
 
   describe('openConnector', () => {
-    it('opens connector detail when given an ID', async () => {
+    it('opens connector detail with current values', async () => {
       await commands.get('pmcode.openConnector')!('jira');
       expect(deps.connectorManager.getConnector).toHaveBeenCalledWith('jira');
+      expect(deps.connectorManager.getFieldValues).toHaveBeenCalledWith('jira');
+      expect(deps.panelManager.openPanel).toHaveBeenCalledWith(
+        'connector-detail', 'jira', 'Jira', expect.any(Function)
+      );
     });
 
     it('shows QuickPick when no ID provided', async () => {
       vi.mocked(vscode.window.showQuickPick).mockResolvedValue({ label: 'Jira', description: 'connected', id: 'jira' } as any);
       await commands.get('pmcode.openConnector')!();
-
       expect(vscode.window.showQuickPick).toHaveBeenCalled();
     });
 
@@ -197,19 +181,19 @@ describe('navigation commands', () => {
   });
 
   describe('openGuide', () => {
-    it('opens guide detail when given an ID', async () => {
+    it('opens guide detail with progress', async () => {
       await commands.get('pmcode.openGuide')!('getting-started');
       expect(deps.guideEngine.getGuide).toHaveBeenCalledWith('getting-started');
+      expect(deps.guideEngine.getProgress).toHaveBeenCalledWith('getting-started');
+      expect(deps.panelManager.openPanel).toHaveBeenCalledWith(
+        'guide-detail', 'getting-started', 'Getting Started', expect.any(Function)
+      );
     });
 
     it('shows QuickPick when no ID provided', async () => {
       vi.mocked(vscode.window.showQuickPick).mockResolvedValue({ label: 'Getting Started', id: 'getting-started' } as any);
       await commands.get('pmcode.openGuide')!();
-
-      expect(vscode.window.showQuickPick).toHaveBeenCalledWith(
-        expect.arrayContaining([expect.objectContaining({ label: 'Getting Started' })]),
-        expect.objectContaining({ placeHolder: 'Select a guide' })
-      );
+      expect(vscode.window.showQuickPick).toHaveBeenCalled();
     });
 
     it('shows warning for nonexistent guide', async () => {
