@@ -53,8 +53,8 @@ export class GuidesListPanel {
       .map((guide) => {
         const gp = progress.get(guide.id);
         const totalSteps = guide.steps.length;
-        const completedSteps = gp ? gp.completedSteps.length : 0;
-        const pct = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+        const completedSteps = gp ? Math.min(gp.completedSteps.length, totalSteps) : 0;
+        const pct = totalSteps > 0 ? Math.min(Math.round((completedSteps / totalSteps) * 100), 100) : 0;
         const hasProgress = gp && completedSteps > 0;
 
         const typeLabel = guide.type === 'walkthrough' ? 'Walkthrough' : 'Step-by-step';

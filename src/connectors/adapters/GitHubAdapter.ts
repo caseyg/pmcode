@@ -6,7 +6,7 @@ export function getConnectorDefinition(): ConnectorConfig {
     name: 'GitHub',
     type: 'cli-tool',
     description: 'Access PRs, issues, repo info, and code search via the GitHub CLI.',
-    icon: '$(github)',
+    icon: '\u{1F419}',
     status: 'unconfigured',
     fields: [],
     cliTool: {

@@ -6,7 +6,7 @@ export function getConnectorDefinition(): ConnectorConfig {
     name: 'Aha!',
     type: 'mcp-server',
     description: 'Access roadmaps, ideas, features, and releases in Aha!.',
-    icon: '$(lightbulb)',
+    icon: '\u{1F4A1}',
     status: 'unconfigured',
     fields: [
       {

@@ -6,7 +6,7 @@ export function getConnectorDefinition(): ConnectorConfig {
     name: 'Jira',
     type: 'mcp-server',
     description: 'Read and manage issues, sprints, and boards in Jira.',
-    icon: '$(issues)',
+    icon: '\u{1F3AF}',
     status: 'unconfigured',
     fields: [
       {

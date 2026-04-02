@@ -6,7 +6,7 @@ export function getConnectorDefinition(): ConnectorConfig {
     name: 'Tavily',
     type: 'mcp-server',
     description: 'AI-powered web search for research and competitive analysis.',
-    icon: '$(search)',
+    icon: '\u{1F50D}',
     status: 'unconfigured',
     fields: [
       {

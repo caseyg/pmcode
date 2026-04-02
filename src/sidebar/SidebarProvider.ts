@@ -27,8 +27,21 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'pmcode.sidebar';
 
   private view?: vscode.WebviewView;
+  private onReadyCallback?: () => void;
 
   constructor(private readonly extensionUri: vscode.Uri) {}
+
+  /**
+   * Register a callback to fire when the webview JS is ready.
+   * Used by extension.ts to push initial FTUE progress and counts.
+   */
+  onReady(callback: () => void): void {
+    this.onReadyCallback = callback;
+  }
+
+  private onWebviewReady(): void {
+    this.onReadyCallback?.();
+  }
 
   resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -64,6 +77,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             'pmcode.pmcode#pmcode.gettingStarted',
             false
           );
+          break;
+        case 'ready':
+          // Webview JS is loaded — send current state
+          this.onWebviewReady();
           break;
         case 'marketplaceSync':
           vscode.commands.executeCommand('pmcode.marketplace.sync');
@@ -465,6 +482,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           break;
       }
     });
+
+    // Signal to the extension that webview JS is ready to receive messages
+    vscode.postMessage({ type: 'ready' });
   </script>
 </body>
 </html>`;

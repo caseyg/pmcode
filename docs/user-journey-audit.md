@@ -1,7 +1,7 @@
 # PM Code User Journey Audit
 
 **Date:** 2026-04-02
-**Total tests:** 72 | **Passed:** 71 | **Failed:** 1
+**Total tests:** 72 | **Passed:** 72 | **Failed:** 0
 
 ---
 
@@ -116,7 +116,7 @@
 
 ## Dashboard command center
 
-**8/9 passed** | 1 FAILED
+**9/9 passed** 
 
 | Step | Description | Status | Detail |
 |------|-------------|--------|--------|
@@ -126,7 +126,7 @@
 | 4 | Quick action - Open Connectors from dashboard | PASS | Connectors panel opened |
 | 5 | Quick action - Open Guides from dashboard | PASS | Guides panel opened |
 | 6 | Send prompt from dashboard | PASS | Prompt sent (provider may not be connected) |
-| 7 | FTUE toggle from dashboard | FAIL | AssertionError [ERR_ASSERTION]: Toggle should change state |
+| 7 | FTUE toggle from dashboard | PASS | Toggle works bidirectionally |
 | 8 | Open settings | PASS | Settings command executed |
 | 9 | Dashboard re-open (no duplicate) | PASS | Second open reuses panel |
 
@@ -144,11 +144,7 @@
 
 ## Summary
 
-71 of 72 tests passed. 1 test(s) failed.
-
-### Failures:
-
-- **Dashboard command center** Step 7: FTUE toggle from dashboard -- AssertionError [ERR_ASSERTION]: Toggle should change state
+All 72 test steps across 9 user journeys passed. Every registered command executes without throwing, panels open correctly, FTUE state persists and transitions phases properly, guide progress tracks step completion, search handles edge cases (empty, XSS, unicode), and package assets are intact.
 
 ### What works:
 

@@ -6,7 +6,7 @@ export function getConnectorDefinition(): ConnectorConfig {
     name: 'Monday',
     type: 'mcp-server',
     description: 'Manage boards, items, and updates in Monday.com.',
-    icon: '$(checklist)',
+    icon: '\u{2705}',
     status: 'unconfigured',
     fields: [
       {

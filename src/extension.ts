@@ -91,7 +91,25 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   registerMarketplaceCommands(context, deps);
   registerFtueCommands(context, deps);
 
-  // 7. Background startup tasks (deferred, non-blocking)
+  // 7. Sidebar ready callback — fires when webview JS is loaded
+  sidebarProvider.onReady(async () => {
+    try {
+      await initFtueProgress(deps);
+      const skills = await deps.skillManager.getInstalledSkills();
+      const connectors = await deps.connectorManager.getConnectors();
+      const guides = deps.guideEngine.getGuides();
+      deps.sidebarProvider.updateCounts(skills.length, connectors.length, guides.length);
+      const rooDetected = await deps.providerAdapter.detect();
+      deps.sidebarProvider.updateStatus(rooDetected);
+      try {
+        deps.sidebarProvider.updateMarketplaceStatus(await deps.marketplace.getStatus());
+      } catch { /* not cloned yet */ }
+    } catch (err) {
+      console.warn('PM Code: sidebar ready error:', err);
+    }
+  });
+
+  // 8. Background startup tasks (deferred, non-blocking)
   setTimeout(() => {
     void runBackgroundStartup(deps, context);
   }, 500);
