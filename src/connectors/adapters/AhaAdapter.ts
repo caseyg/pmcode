@@ -30,9 +30,9 @@ export function getConnectorDefinition(): ConnectorConfig {
     ],
     mcpServer: {
       command: 'npx',
-      args: ['-y', 'mcp-server-aha'],
+      args: ['-y', 'aha-mcp@latest'],
       envMapping: {
-        instanceUrl: 'AHA_INSTANCE_URL',
+        instanceUrl: 'AHA_DOMAIN',
         apiToken: 'AHA_API_TOKEN',
       },
     },

@@ -21,7 +21,8 @@ export function getConnectorDefinition(): ConnectorConfig {
     ],
     mcpServer: {
       command: 'npx',
-      args: ['-y', 'tavily-mcp'],
+      args: ['-y', 'tavily-mcp@latest'],
+      httpUrl: 'https://mcp.tavily.com/mcp',
       envMapping: {
         apiKey: 'TAVILY_API_KEY',
       },

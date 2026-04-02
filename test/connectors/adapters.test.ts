@@ -215,12 +215,12 @@ describe('AhaAdapter', () => {
   it('has mcpServer with correct command and args', () => {
     expect(def.mcpServer).toBeDefined();
     expect(def.mcpServer!.command).toBe('npx');
-    expect(def.mcpServer!.args).toContain('mcp-server-aha');
+    expect(def.mcpServer!.args).toContain('aha-mcp@latest');
   });
 
   it('mcpServer envMapping maps both fields', () => {
     expect(def.mcpServer!.envMapping).toEqual({
-      instanceUrl: 'AHA_INSTANCE_URL',
+      instanceUrl: 'AHA_DOMAIN',
       apiToken: 'AHA_API_TOKEN',
     });
   });
@@ -264,7 +264,8 @@ describe('TavilyAdapter', () => {
   it('has mcpServer with correct command and args', () => {
     expect(def.mcpServer).toBeDefined();
     expect(def.mcpServer!.command).toBe('npx');
-    expect(def.mcpServer!.args).toContain('tavily-mcp');
+    expect(def.mcpServer!.args).toContain('tavily-mcp@latest');
+    expect(def.mcpServer!.httpUrl).toBe('https://mcp.tavily.com/mcp');
   });
 
   it('mcpServer envMapping maps apiKey', () => {
