@@ -1,19 +1,29 @@
 ## You're Ready to Go!
 
-You've completed the basics. Here's what to explore next:
+You've set up your AI-powered PM workspace. Here's your toolkit:
 
-### Skills
+### Your daily workflow
 
-Pre-built AI workflows for common PM tasks like idea triage, PRD writing, and sprint retrospectives. Find them in the **Skills** panel.
+| Action | Where to find it |
+|--------|-----------------|
+| Quick tasks | **Dashboard** > Quick Actions ("My tasks", "Standup summary", "Needs attention") |
+| Run a PM workflow | **Skills** panel > click a skill > "Send to Roo" |
+| Check tool status | **Connectors** panel > see green/red status dots |
+| Learn something new | **Guides** panel > step-by-step walkthroughs |
+| Find anything | **Search bar** at the top of the PM Code sidebar |
 
-### Guides
+### Recommended next steps
 
-Step-by-step walkthroughs that teach you how to get the most out of PM Code. Check the **Guides** panel for topics like connecting tools and writing effective prompts.
+1. **Browse Skills** — Try "Idea Triage" to prioritize your backlog, or "PRD Writer" to draft a spec
+2. **Open a Guide** — "Triage Ideas Like a Pro" walks you through a real prioritization workflow
+3. **Check the Marketplace** — Browse and install community skills and connectors
+4. **Connect more tools** — The more tools connected, the more Roo can help across your workflow
 
-### Marketplace
+### Keyboard shortcut
 
-Browse community-contributed skills and connectors in the **Marketplace** to extend PM Code.
+Open the PM Code sidebar anytime by clicking the PM Code icon in the Activity Bar (left edge of VS Code).
 
-### Quick actions
+### Get help
 
-Open the **Dashboard** for one-click actions like "My tasks", "Standup summary", and "Needs attention".
+- Open the Dashboard for a quick overview of everything
+- Stuck? Just ask Roo: "How do I use PM Code to plan my sprint?"

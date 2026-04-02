@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import type { ExtensionDeps } from '../extension';
+import { escapeHtml, escapeAttr } from '../panels/panelUtils';
 
 /**
  * Register marketplace commands: sync, browse, install skill/connector.
@@ -201,16 +202,16 @@ function getMarketplaceHtml(
         <div class="card-header">
           <span class="card-icon">&#9889;</span>
           <div>
-            <div class="card-title">${esc(skill.name)}</div>
-            <div class="card-description">${esc(skill.description)}</div>
+            <div class="card-title">${escapeHtml(skill.name)}</div>
+            <div class="card-description">${escapeHtml(skill.description)}</div>
           </div>
         </div>
         <div class="card-footer">
-          <span class="badge">${esc(skill.category)}</span>
-          <span class="badge">v${esc(skill.version)}</span>
+          <span class="badge">${escapeHtml(skill.category)}</span>
+          <span class="badge">v${escapeHtml(skill.version)}</span>
           ${installed
             ? '<span class="badge" style="background:var(--vscode-testing-iconPassed,#4caf50);color:#fff">Installed</span>'
-            : `<button class="btn btn-primary" onclick="install('skill','${esc(skill.id)}')">Install</button>`
+            : `<button class="btn btn-primary" onclick="install('skill','${escapeAttr(skill.id)}')">Install</button>`
           }
         </div>
       </div>`;
@@ -223,14 +224,14 @@ function getMarketplaceHtml(
         <div class="card-header">
           <span class="card-icon">&#128268;</span>
           <div>
-            <div class="card-title">${esc(conn.name)}</div>
-            <div class="card-description">${esc(conn.description)}</div>
+            <div class="card-title">${escapeHtml(conn.name)}</div>
+            <div class="card-description">${escapeHtml(conn.description)}</div>
           </div>
         </div>
         <div class="card-footer">
-          <span class="badge">${esc(conn.type)}</span>
-          <span class="badge">v${esc(conn.version)}</span>
-          <button class="btn btn-primary" onclick="install('connector','${esc(conn.id)}')">Install</button>
+          <span class="badge">${escapeHtml(conn.type)}</span>
+          <span class="badge">v${escapeHtml(conn.version)}</span>
+          <button class="btn btn-primary" onclick="install('connector','${escapeAttr(conn.id)}')">Install</button>
         </div>
       </div>`;
   }
@@ -276,11 +277,3 @@ function getMarketplaceHtml(
 </html>`;
 }
 
-function esc(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}

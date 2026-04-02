@@ -276,6 +276,7 @@ export class MarketplaceRegistry {
   /**
    * Install a plugin from the marketplace.
    * For relative-source plugins, copies from the local clone.
+   * Also extracts skills/ into ~/.pmcode/skills/ so SkillLoader finds them.
    */
   async installPlugin(pluginName: string): Promise<string> {
     const catalog = await this.getCatalog();
@@ -290,6 +291,22 @@ export class MarketplaceRegistry {
       const sourcePath = path.join(this.getMarketplaceDir(), source);
       const targetPath = path.join(os.homedir(), '.pmcode', 'plugins', pluginName);
       await this.copyDirectory(sourcePath, targetPath);
+
+      // Extract skills into ~/.pmcode/skills/ so SkillLoader discovers them
+      const skillsDir = path.join(sourcePath, 'skills');
+      try {
+        const skillEntries = await fs.readdir(skillsDir, { withFileTypes: true });
+        for (const entry of skillEntries) {
+          if (entry.isDirectory()) {
+            const skillSource = path.join(skillsDir, entry.name);
+            const skillTarget = path.join(os.homedir(), '.pmcode', 'skills', entry.name);
+            await this.copyDirectory(skillSource, skillTarget);
+          }
+        }
+      } catch {
+        // No skills/ directory in this plugin — that's fine
+      }
+
       return targetPath;
     }
 

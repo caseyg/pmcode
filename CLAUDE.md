@@ -26,7 +26,7 @@ npx tsc --noEmit         # type-check only
 - `src/guides/` — GuideEngine with 4 hardcoded guides
 - `src/providers/` — ProviderAdapter interface + RooCodeAdapter (cross-platform paths)
 - `src/config/` — ConfigManager (~/.pmcode/config.json), EnvManager (.env), ConfigVersioning (history snapshots)
-- `src/marketplace/` — MarketplaceRegistry (git clone/pull, .claude-plugin/marketplace.json catalog)
+- `src/marketplace/` — MarketplaceRegistry (git clone/pull, reads `.claude-plugin/marketplace.json` catalog per Claude Code plugin format, installs to `~/.pmcode/plugins/` and extracts skills to `~/.pmcode/skills/`)
 - `src/system/` — DependencyChecker, SetupProgress
 
 ## Key patterns

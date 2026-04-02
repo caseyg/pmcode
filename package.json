@@ -90,6 +90,28 @@
         ]
       }
     ],
+    "configuration": {
+      "title": "PM Code",
+      "properties": {
+        "pmcode.provider": {
+          "type": "string",
+          "default": "roo-code",
+          "enum": ["roo-code"],
+          "enumDescriptions": ["Roo Code (default AI assistant)"],
+          "description": "AI provider to use for prompts and skills."
+        },
+        "pmcode.marketplace.repoUrl": {
+          "type": "string",
+          "default": "https://github.com/anthropics/knowledge-work-plugins.git",
+          "description": "Git URL for the plugin marketplace repository."
+        },
+        "pmcode.autoOpenWalkthrough": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically open the Getting Started walkthrough on first install."
+        }
+      }
+    },
     "commands": [
       { "command": "pmcode.sendPrompt", "title": "PM Code: Send Prompt to Roo" },
       { "command": "pmcode.focusSidebar", "title": "PM Code: Focus Sidebar" },
