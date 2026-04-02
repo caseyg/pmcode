@@ -30,6 +30,7 @@ export interface ConnectorConfig {
     command: string;
     args: string[];
     envMapping: Record<string, string>; // field id -> env var name
+    httpUrl?: string; // HTTP MCP endpoint (alternative to command/args)
   };
   cliTool?: {
     command: string;
@@ -363,7 +364,12 @@ export class ConnectorManager {
       }
     }
 
-    // Try to spawn the MCP server briefly to see if the command is available
+    // For HTTP MCP endpoints, just check the URL is configured
+    if (def.mcpServer.httpUrl) {
+      return { status: 'connected', message: `${def.name} is configured (HTTP MCP at ${def.mcpServer.httpUrl}).` };
+    }
+
+    // For command-based MCP servers, check if the command is available
     try {
       const { exec } = await import('child_process');
       const { promisify } = await import('util');
@@ -395,11 +401,21 @@ export class ConnectorManager {
       }
     }
 
-    const serverDef: McpServerDefinition = {
-      command: def.mcpServer.command,
-      args: [...def.mcpServer.args],
-      env,
-    };
+    let serverDef: McpServerDefinition;
+    if (def.mcpServer.httpUrl) {
+      // HTTP MCP endpoint (hosted service)
+      serverDef = {
+        type: 'http',
+        url: def.mcpServer.httpUrl,
+      } as any;
+    } else {
+      // Local command MCP server
+      serverDef = {
+        command: def.mcpServer.command,
+        args: [...def.mcpServer.args],
+        env,
+      };
+    }
 
     const configPath = this.providerAdapter.getGlobalMcpConfigPath();
     const mcpConfig = await this.providerAdapter.readMcpConfig(configPath);

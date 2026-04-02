@@ -21,7 +21,7 @@ export function getConnectorDefinition(): ConnectorConfig {
     ],
     mcpServer: {
       command: 'npx',
-      args: ['-y', '@anthropic/mcp-server-tavily-search'],
+      args: ['-y', 'tavily-mcp'],
       envMapping: {
         apiKey: 'TAVILY_API_KEY',
       },

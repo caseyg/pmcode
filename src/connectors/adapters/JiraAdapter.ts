@@ -38,7 +38,8 @@ export function getConnectorDefinition(): ConnectorConfig {
     ],
     mcpServer: {
       command: 'npx',
-      args: ['-y', '@anthropic/mcp-server-jira'],
+      args: ['-y', 'mcp-server-jira-cloud'],
+      httpUrl: 'https://mcp.atlassian.com/v1/mcp',
       envMapping: {
         instanceUrl: 'JIRA_URL',
         apiToken: 'JIRA_API_TOKEN',
@@ -50,7 +51,7 @@ export function getConnectorDefinition(): ConnectorConfig {
       'What tickets were completed last sprint?',
       'Move PROJ-123 to In Progress',
     ],
-    relatedSkills: ['sprint-retro', 'sprint-planning', 'standup-summary', 'idea-triage', 'roadmap-review', 'user-story-breakdown'],
+    relatedSkills: ['sprint-retro', 'sprint-planning', 'idea-triage'],
     relatedGuides: ['triage-ideas'],
   };
 }

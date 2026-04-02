@@ -155,11 +155,9 @@ describe('ConnectorManager', () => {
       const writeCall = vi.mocked(providerAdapter.writeMcpConfig).mock.calls[0];
       const config = writeCall[1] as McpConfig;
       expect(config.mcpServers['jira']).toBeDefined();
-      expect(config.mcpServers['jira'].command).toBe('npx');
-      expect(config.mcpServers['jira'].env).toEqual({
-        JIRA_URL: 'https://test.atlassian.net',
-        JIRA_API_TOKEN: 'secret-token-123',
-      });
+      // Jira uses HTTP MCP endpoint
+      expect((config.mcpServers['jira'] as any).type).toBe('http');
+      expect((config.mcpServers['jira'] as any).url).toBe('https://mcp.atlassian.com/v1/mcp');
     });
 
     it('does not write MCP config for CLI tool type (github)', async () => {
@@ -185,13 +183,13 @@ describe('ConnectorManager', () => {
       expect(result.message).toContain('Missing required credential');
     });
 
-    it('for MCP servers, returns connected when credentials exist and command found', async () => {
+    it('for HTTP MCP servers, returns connected when credentials exist', async () => {
       // Set up credentials
       vi.mocked(envManager.getToken).mockResolvedValue('some-token');
-      vi.mocked(exec as unknown as (...args: any[]) => any).mockResolvedValue({ stdout: '/usr/bin/npx', stderr: '' });
 
       const result = await manager.testConnection('jira');
       expect(result.status).toBe('connected');
+      expect(result.message).toContain('HTTP MCP');
     });
 
     it('for CLI tools, runs the status command', async () => {

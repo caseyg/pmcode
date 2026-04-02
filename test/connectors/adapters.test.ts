@@ -68,7 +68,8 @@ describe('JiraAdapter', () => {
     expect(def.mcpServer).toBeDefined();
     expect(def.mcpServer!.command).toBe('npx');
     expect(def.mcpServer!.args).toContain('-y');
-    expect(def.mcpServer!.args).toContain('@anthropic/mcp-server-jira');
+    expect(def.mcpServer!.args).toContain('mcp-server-jira-cloud');
+    expect(def.mcpServer!.httpUrl).toBe('https://mcp.atlassian.com/v1/mcp');
   });
 
   it('mcpServer envMapping maps fields to env vars', () => {
@@ -157,7 +158,8 @@ describe('MondayAdapter', () => {
   it('has mcpServer with correct command and args', () => {
     expect(def.mcpServer).toBeDefined();
     expect(def.mcpServer!.command).toBe('npx');
-    expect(def.mcpServer!.args).toContain('@anthropic/mcp-server-monday');
+    expect(def.mcpServer!.args).toContain('@mondaydotcomorg/monday-api-mcp');
+    expect(def.mcpServer!.httpUrl).toBe('https://mcp.monday.com/mcp');
   });
 
   it('mcpServer envMapping maps apiToken', () => {
@@ -213,7 +215,7 @@ describe('AhaAdapter', () => {
   it('has mcpServer with correct command and args', () => {
     expect(def.mcpServer).toBeDefined();
     expect(def.mcpServer!.command).toBe('npx');
-    expect(def.mcpServer!.args).toContain('@anthropic/mcp-server-aha');
+    expect(def.mcpServer!.args).toContain('mcp-server-aha');
   });
 
   it('mcpServer envMapping maps both fields', () => {
@@ -262,7 +264,7 @@ describe('TavilyAdapter', () => {
   it('has mcpServer with correct command and args', () => {
     expect(def.mcpServer).toBeDefined();
     expect(def.mcpServer!.command).toBe('npx');
-    expect(def.mcpServer!.args).toContain('@anthropic/mcp-server-tavily-search');
+    expect(def.mcpServer!.args).toContain('tavily-mcp');
   });
 
   it('mcpServer envMapping maps apiKey', () => {

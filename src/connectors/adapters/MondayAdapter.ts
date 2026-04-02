@@ -21,7 +21,8 @@ export function getConnectorDefinition(): ConnectorConfig {
     ],
     mcpServer: {
       command: 'npx',
-      args: ['-y', '@anthropic/mcp-server-monday'],
+      args: ['-y', '@mondaydotcomorg/monday-api-mcp'],
+      httpUrl: 'https://mcp.monday.com/mcp',
       envMapping: {
         apiToken: 'MONDAY_API_TOKEN',
       },
@@ -32,7 +33,7 @@ export function getConnectorDefinition(): ConnectorConfig {
       'What updates were posted this week?',
       'Move item to Done status',
     ],
-    relatedSkills: ['idea-triage', 'sprint-planning', 'user-story-breakdown'],
+    relatedSkills: ['idea-triage', 'sprint-planning'],
     relatedGuides: ['triage-ideas'],
   };
 }
