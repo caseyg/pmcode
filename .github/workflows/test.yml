@@ -1,0 +1,91 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run test:unit
+
+  integration:
+    name: Integration Tests
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run compile && npm run compile:tests
+
+      # Cache VS Code download
+      - uses: actions/cache@v4
+        with:
+          path: .vscode-test
+          key: vscode-test-${{ matrix.os }}-${{ hashFiles('.vscode-test.mjs') }}
+
+      # Linux needs xvfb for VS Code UI
+      - name: Run integration tests (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm run test:integration
+        env:
+          DISPLAY: ':99'
+
+      - name: Run integration tests (non-Linux)
+        if: runner.os != 'Linux'
+        run: npm run test:integration
+
+  e2e:
+    name: E2E Tests
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run compile && npm run compile:tests
+
+      # Disable GPU acceleration for headless
+      - name: Disable GPU acceleration
+        run: |
+          mkdir -p ~/.vscode
+          echo '{"disable-hardware-acceleration": true}' > ~/.vscode/argv.json
+
+      - name: Run E2E tests (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm run test:e2e
+        env:
+          DISPLAY: ':99'
+
+      - name: Run E2E tests (macOS)
+        if: runner.os == 'macOS'
+        run: npm run test:e2e
+
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run coverage
